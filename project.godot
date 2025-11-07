@@ -1,0 +1,24 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
+config_version=5
+
+[application]
+
+config/name="Gaea Procedural Generation Tutorial"
+run/main_scene="uid://dg52nd3iqwge6"
+config/features=PackedStringArray("4.4", "Forward Plus")
+config/icon="res://artwork/icon.svg"
+
+[display]
+
+window/stretch/mode="canvas_items"
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/gaea/plugin.cfg")
