@@ -27,7 +27,7 @@ import/use_multiple_threads=false
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/addons/gaea/plugin.cfg", "res://addons/addons/godot-vim/plugin.cfg")
+enabled=PackedStringArray("res://addons/gaea/plugin.cfg", "res://addons/godot_vim/plugin.cfg")
 
 [rendering]
 
