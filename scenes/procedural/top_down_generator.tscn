@@ -1,22 +1,41 @@
-[gd_scene load_steps=11 format=3 uid="uid://bahlei7h30fdo"]
+[gd_scene load_steps=14 format=3 uid="uid://bahlei7h30fdo"]
 
 [ext_resource type="Script" uid="uid://bj24gplil3mep" path="res://addons/gaea/generators/2D/noise_generator/noise_generator.gd" id="1_6o8kt"]
 [ext_resource type="Script" uid="uid://c0arlpknx1bd6" path="res://addons/gaea/modifiers/2D/modifier_2d.gd" id="2_qg6qx"]
 [ext_resource type="Script" uid="uid://cvpqps33k3ynn" path="res://addons/gaea/generators/2D/noise_generator/noise_generator_settings.gd" id="3_ycper"]
 [ext_resource type="Script" uid="uid://wo6ylsee8njb" path="res://addons/gaea/generators/2D/noise_generator/noise_generator_data.gd" id="4_wethb"]
+[ext_resource type="Script" uid="uid://cmqgqclqbgd76" path="res://addons/gaea/tile_info/tilemap_tile_info.gd" id="5_sx6aq"]
 [ext_resource type="Script" uid="uid://dijyn2ptqvk6u" path="res://addons/gaea/renderers/2D/tilemap_gaea_renderer.gd" id="6_2jj63"]
 [ext_resource type="Texture2D" uid="uid://j077iqusq4ha" path="res://assets/procedural/ArtForTOPDOWN-GaeaTutorial.png" id="7_i6hvw"]
 
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_mqy6w"]
-seed = 1643307143
+
+[sub_resource type="Resource" id="Resource_qg6qx"]
+script = ExtResource("5_sx6aq")
+type = 0
+tilemap_layer = 0
+source_id = 0
+atlas_coord = Vector2i(1, 0)
+alternative_tile = 0
+id = ""
+layer = 0
+metadata/_custom_type_script = "uid://cmqgqclqbgd76"
+
+[sub_resource type="Resource" id="Resource_ycper"]
+resource_name = "water"
+script = ExtResource("4_wethb")
+title = "water"
+tile = SubResource("Resource_qg6qx")
+min = -1.0
+max = 1.0
 
 [sub_resource type="Resource" id="Resource_6o8kt"]
 resource_name = "Settings"
 script = ExtResource("3_ycper")
-tiles = Array[ExtResource("4_wethb")]([])
+tiles = Array[ExtResource("4_wethb")]([SubResource("Resource_ycper")])
 noise = SubResource("FastNoiseLite_mqy6w")
 infinite = false
-world_size = Vector2i(256, 256)
+world_size = Vector2i(128, 128)
 falloff_enabled = false
 modifiers = Array[ExtResource("2_qg6qx")]([])
 metadata/_custom_type_script = "uid://cvpqps33k3ynn"
