@@ -1,6 +1,9 @@
-[gd_scene format=3 uid="uid://dpkxmlpyypscr"]
+[gd_scene load_steps=2 format=3 uid="uid://dpkxmlpyypscr"]
+
+[ext_resource type="Script" uid="uid://c2pm8xel16vs6" path="res://scripts/perlin/perlin_noise_map.gd" id="1_42ksh"]
 
 [node name="PerlinNoiseMap" type="Node2D"]
+script = ExtResource("1_42ksh")
 
 [node name="TileMapLayer" type="TileMapLayer" parent="."]
 

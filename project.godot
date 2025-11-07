@@ -1,3 +1,11 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
 config_version=5
 
 [application]
@@ -13,9 +21,13 @@ window/size/viewport_width=960
 window/size/viewport_height=540
 window/stretch/mode="canvas_items"
 
+[editor]
+
+import/use_multiple_threads=false
+
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/addons/godot-vim/plugin.cfg")
+enabled=PackedStringArray("res://addons/GDScript/addons/YATI/plugin.cfg", "res://addons/addons/godot-vim/plugin.cfg")
 
 [rendering]
 

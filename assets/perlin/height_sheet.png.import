@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://5881qy8usyu3"
-path="res://.godot/imported/HeightSheet.png-1d6142be00e3baf0d44d8cdd220aaebe.ctex"
+uid="uid://cuswialadwgiq"
+path="res://.godot/imported/height_sheet.png-252fab78914340d0bdeada16274a0585.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/perlin/HeightSheet.png"
-dest_files=["res://.godot/imported/HeightSheet.png-1d6142be00e3baf0d44d8cdd220aaebe.ctex"]
+source_file="res://assets/perlin/height_sheet.png"
+dest_files=["res://.godot/imported/height_sheet.png-252fab78914340d0bdeada16274a0585.ctex"]
 
 [params]
 
