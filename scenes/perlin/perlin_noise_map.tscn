@@ -1,11 +1,26 @@
-[gd_scene load_steps=2 format=3 uid="uid://dpkxmlpyypscr"]
+[gd_scene load_steps=5 format=3 uid="uid://dpkxmlpyypscr"]
 
 [ext_resource type="Script" uid="uid://c2pm8xel16vs6" path="res://scripts/perlin/perlin_noise_map.gd" id="1_42ksh"]
+[ext_resource type="Texture2D" uid="uid://do3jij0uxu4fi" path="res://assets/perlin/height_sheet.png" id="2_gvfc0"]
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_gvfc0"]
+texture = ExtResource("2_gvfc0")
+0:0/0 = 0
+1:0/0 = 0
+2:0/0 = 0
+3:0/0 = 0
+4:0/0 = 0
+5:0/0 = 0
+6:0/0 = 0
+
+[sub_resource type="TileSet" id="TileSet_q4h6b"]
+sources/0 = SubResource("TileSetAtlasSource_gvfc0")
 
 [node name="PerlinNoiseMap" type="Node2D"]
 script = ExtResource("1_42ksh")
 
 [node name="TileMapLayer" type="TileMapLayer" parent="."]
+tile_set = SubResource("TileSet_q4h6b")
 
 [node name="CanvasLayer" type="CanvasLayer" parent="TileMapLayer"]
 
