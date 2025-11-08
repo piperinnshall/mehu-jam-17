@@ -1,39 +1,25 @@
 [gd_scene load_steps=6 format=3 uid="uid://dg52nd3iqwge6"]
 
 [ext_resource type="PackedScene" uid="uid://qn0rmtmph5ph" path="res://scenes/boatP1.tscn" id="1_0xm2m"]
-[ext_resource type="PackedScene" uid="uid://bffb22mckii7n" path="res://scenes/map_generation/map_generator.tscn" id="1_h2yge"]
-[ext_resource type="Script" uid="uid://chw61hh6yryrp" path="res://scripts/map_generation/map_settings.gd" id="2_1bvp3"]
+[ext_resource type="PackedScene" uid="uid://bt3kq6guf238v" path="res://scenes/map_generation/world.tscn" id="1_h2yge"]
 [ext_resource type="PackedScene" uid="uid://dun85bvaamrqx" path="res://scenes/boatP2.tscn" id="2_h2yge"]
-
-[sub_resource type="Resource" id="Resource_lquwl"]
-script = ExtResource("2_1bvp3")
-width = 512
-height = 512
-base_freq = 0.003
-base_octaves = 4
-detail_freq = 0.02
-detail_octaves = 3
-detail_gain = 0.1
-water_thresh = 0.4
-sand_thresh = 0.42
-forest_thresh = 0.6
-water_colors = [Color(0, 0, 0.2, 1), Color(0, 0.1, 0.4, 1), Color(0, 0.3, 0.6, 1)]
-sand_colors = [Color(0.9, 0.85, 0.6, 1), Color(0.95, 0.9, 0.5, 1), Color(0.8, 0.75, 0.5, 1)]
-land_colors = [Color(0.1, 0.4, 0.1, 1), Color(0.2, 0.5, 0.1, 1), Color(0.3, 0.6, 0.2, 1)]
-forest_colors = [Color(0.05, 0.3, 0.05, 1), Color(0.1, 0.5, 0.1, 1), Color(0.15, 0.6, 0.15, 1)]
-metadata/_custom_type_script = "uid://chw61hh6yryrp"
+[ext_resource type="PackedScene" uid="uid://bfwnil5rw6w04" path="res://scenes/WindManager.tscn" id="4_1bvp3"]
+[ext_resource type="Script" uid="uid://bstc607qwlevv" path="res://scripts/camera_2d.gd" id="5_lquwl"]
 
 [node name="Main" type="Node2D"]
 
-[node name="MapGenerator" parent="." instance=ExtResource("1_h2yge")]
-settings = SubResource("Resource_lquwl")
+[node name="World" parent="." instance=ExtResource("1_h2yge")]
 
 [node name="CharacterBody2D" parent="." instance=ExtResource("1_0xm2m")]
 position = Vector2(261, 198)
 
-[node name="Camera2D" type="Camera2D" parent="CharacterBody2D"]
-position = Vector2(-261, -198)
-
 [node name="CharacterBody2D2" parent="." instance=ExtResource("2_h2yge")]
 position = Vector2(453, 95)
 invert_sprite_rotation = true
+
+[node name="WindManager" parent="." instance=ExtResource("4_1bvp3")]
+
+[node name="Camera2D" type="Camera2D" parent="."]
+script = ExtResource("5_lquwl")
+player1_path = NodePath("../CharacterBody2D")
+player2_path = NodePath("../CharacterBody2D2")
