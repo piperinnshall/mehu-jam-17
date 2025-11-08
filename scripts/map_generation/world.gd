@@ -3,19 +3,26 @@ extends Node2D
 # ========================
 # CONFIGURATION
 # ========================
-const WIDTH: int = 2000
-const HEIGHT: int = 2000
+const WIDTH: int = 1700
+const HEIGHT: int = 1700
 
 # Noise generators
 var base_noise := FastNoiseLite.new()
 var detail_noise := FastNoiseLite.new()
 
 # Color palettes
+# var water_colors = [
+	# Color(0.0, 0.0, 0.2),  # deep
+	# Color(0.0, 0.1, 0.4),
+	# Color(0.0, 0.3, 0.6), # shallow
+#]
+
 var water_colors = [
-	Color(0.0, 0.0, 0.2),  # deep
-	Color(0.0, 0.1, 0.4),
-	Color(0.0, 0.3, 0.6)   # shallow
+	Color(0.4, 0.7, 0.9), # deep
+	Color(0.2, 0.5, 0.7),
+	Color(0.1, 0.3, 0.5), # shallow
 ]
+
 
 var sand_colors = [
 	Color(0.9, 0.85, 0.6),
@@ -150,10 +157,10 @@ func _generate_map(img: Image) -> void:
 			# ------------------------
 			var border_t = _border_mask(x, y)
 			if border_t < 1.0:
-				# blend height into LAND+SAND range
-				var target = LAND_MAX + randf() * (SAND_MAX - LAND_MAX)
+				var target = LAND_MAX * 0.8  # solid land, a bit below max for variety
 				height_val = lerp(target, height_val, border_t)
-
+				
+				
 			# ------------------------
 			# COLOR MAPPING
 			# ------------------------
