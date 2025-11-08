@@ -2,12 +2,12 @@ shader_type spatial;
 
 // Called for every vertex the material is visible on.
 void vertex() {
-	
+
 }
 
 // Called for every pixel the material is visible on.
 void fragment() {
-	
+
 }
 
 //void light() {
