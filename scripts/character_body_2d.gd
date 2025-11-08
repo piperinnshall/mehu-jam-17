@@ -1,120 +1,178 @@
 extends CharacterBody2D
 
+class_name Player1Boat
+
 # Movement parameters
-@export var max_speed: float = 400.0
-@export var min_base_speed: float = 50.0  # Minimum constant speed
-@export var acceleration: float = 200.0
-@export var deceleration: float = 150.0
-@export var drift_factor: float = 0.95  # How much the boat slides (1.0 = no drift, 0.0 = ice)
+@export var max_speed: float = 200.0
+@export var min_base_speed: float = 25.0
+@export var acceleration: float = 100.0
+@export var deceleration: float = 50.0
+@export var drift_factor: float = 0.95
 
 # Turning parameters
-@export var turn_speed: float = 2.0  # Radians per second at max speed
-@export var min_turn_speed: float = 0.5  # Minimum turn speed when stationary
-@export var turn_speed_curve: float = 2.0  # How turn speed scales with velocity (higher = tighter at high speed)
+@export var turn_speed: float = 2.0
+@export var min_turn_speed: float = 0.5
+@export var turn_speed_curve: float = 2.0
 
 # Advanced physics
-@export var water_resistance: float = 0.98  # Gradual slowdown
-@export var min_speed_threshold: float = 10.0  # Speed below which boat stops completely
+@export var water_resistance: float = 0.98
+@export var min_speed_threshold: float = 10.0
+
+# Wind physics
+@export var wind_boost_strength: float = 200.0  # Max speed bonus from wind
+@export var wind_resistance_strength: float = 20.0  # Speed penalty against wind
+@export var wind_angle_threshold: float = 70.0  # Degrees for wind effect
 
 # Sprite parameters
-@export var total_sprite_frames: int = 360  # Total number of rotation frames
-@export var sprite_rotation_offset: float = 0.0  # Adjust if sprite sheet doesn't start at 0° right
-@export var invert_sprite_rotation: bool = false  # Flip animation direction if needed
+@export var total_sprite_frames: int = 360
+@export var sprite_rotation_offset: float = 0.0
+@export var invert_sprite_rotation: bool = false
 
-# Internal variables
-var current_speed: float = 0.0
-var target_rotation: float = 0.0
-var momentum_velocity: Vector2 = Vector2.ZERO
-var boat_visual_rotation: float = 0.0  # Track visual rotation separately
+# Internal variables - P1 specific
+var p1_current_speed: float = 0.0
+var p1_target_rotation: float = 0.0
+var p1_momentum_velocity: Vector2 = Vector2.ZERO
+var p1_boat_visual_rotation: float = 0.0
+
+# Wind reference
+var wind_manager: Node = null
 
 @onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var collision_shape: CollisionShape2D = $CollisionShape2D
 
 func _ready() -> void:
-	# Set initial rotation (sprite starts facing right = 0 degrees)
-	boat_visual_rotation = 0.0
-	target_rotation = 0.0
+	p1_boat_visual_rotation = 0.0
+	p1_target_rotation = 0.0
 	
-	# Make sure AnimatedSprite2D doesn't auto-play
 	if animated_sprite:
 		animated_sprite.stop()
+	
+	# Find wind manager
+	call_deferred("_find_wind_manager")
+
+func _find_wind_manager() -> void:
+	# Try to find WindManager in the scene
+	var root = get_tree().root
+	wind_manager = _find_node_by_class_name(root, "WindManager")
+
+func _find_node_by_class_name(node: Node, target_class: String) -> Node:
+	# Check if this node has the class name
+	if node.get_script():
+		var script = node.get_script()
+		if script.has_method("get_global_name"):
+			if script.get_global_name() == target_class:
+				return node
+	
+	# Check children recursively
+	for child in node.get_children():
+		var result = _find_node_by_class_name(child, target_class)
+		if result:
+			return result
+	
+	return null
 
 func _physics_process(delta: float) -> void:
-	# Get input
+	# Get P1 input
 	var input_dir := Input.get_axis("ui_left", "ui_right")
 	var throttle := Input.get_action_strength("ui_up")
 	
-	# Simple acceleration - forward only
+	# Calculate wind effect on speed
+	var wind_speed_modifier = _calculate_wind_effect()
+	
+	# P1 acceleration with wind modifier
 	if throttle > 0.0:
-		current_speed += acceleration * delta
-		current_speed = min(current_speed, max_speed)
+		p1_current_speed += acceleration * delta
+		p1_current_speed = min(p1_current_speed, max_speed + wind_speed_modifier)
 	else:
-		# Decelerate when not pressing forward, but maintain base speed
-		current_speed -= deceleration * delta
-		current_speed = max(current_speed, min_base_speed)
+		p1_current_speed -= deceleration * delta
+		p1_current_speed = max(p1_current_speed, min_base_speed)
 	
-	# Handle turning
-	if abs(input_dir) > 0.0 and current_speed > min_speed_threshold:
-		boat_visual_rotation += input_dir * turn_speed * delta
-		target_rotation = boat_visual_rotation
+	# Apply wind modifier to current speed
+	var effective_speed = p1_current_speed + wind_speed_modifier
+	effective_speed = max(effective_speed, 0.0)  # Don't go backwards
 	
-	# Calculate movement direction
-	var forward_direction = Vector2.RIGHT.rotated(boat_visual_rotation)
+	# P1 turning
+	if abs(input_dir) > 0.0 and effective_speed > min_speed_threshold:
+		p1_boat_visual_rotation += input_dir * turn_speed * delta
+		p1_target_rotation = p1_boat_visual_rotation
 	
-	# Set velocity directly
-	velocity = forward_direction * current_speed
+	# P1 movement
+	var forward_direction = Vector2.RIGHT.rotated(p1_boat_visual_rotation)
+	velocity = forward_direction * effective_speed
 	
-	# Move the boat
 	move_and_slide()
-	
-	# Update sprite frame based on rotation
 	update_sprite_frame()
 	
-	# Simple collision handling
+	# P1 collision
 	if get_slide_collision_count() > 0:
-		current_speed *= 0.5
+		p1_current_speed *= 0.5
+
+func _calculate_wind_effect() -> float:
+	if not wind_manager:
+		return 0.0
+	
+	# Get wind direction
+	var wind_dir = wind_manager.get_wind_direction()
+	var wind_strength = wind_manager.get_wind_strength()
+	
+	# Calculate angle difference between boat and wind
+	var angle_diff = wind_dir - p1_boat_visual_rotation
+	
+	# Normalize angle to -PI to PI
+	while angle_diff > PI:
+		angle_diff -= TAU
+	while angle_diff < -PI:
+		angle_diff += TAU
+	
+	# Convert to degrees for easier understanding
+	var angle_diff_degrees = abs(rad_to_deg(angle_diff))
+	
+	# Calculate alignment (-1 = opposite, 0 = perpendicular, 1 = same direction)
+	var _alignment = cos(angle_diff)
+	
+	# Only apply wind effect if within threshold angle
+	var _threshold_radians = deg_to_rad(wind_angle_threshold)
+	
+	if angle_diff_degrees <= wind_angle_threshold:
+		# Going WITH the wind - speed boost
+		var boost_factor = 1.0 - (angle_diff_degrees / wind_angle_threshold)
+		return (wind_strength / 100.0) * wind_boost_strength * boost_factor
+	elif angle_diff_degrees >= (180.0 - wind_angle_threshold):
+		# Going AGAINST the wind - speed penalty
+		var resistance_factor = 1.0 - ((180.0 - angle_diff_degrees) / wind_angle_threshold)
+		return -(wind_strength / 100.0) * wind_resistance_strength * resistance_factor
+	else:
+		# Perpendicular to wind - minimal effect
+		return 0.0
 
 func update_sprite_frame() -> void:
 	if not animated_sprite:
 		return
 	
-	# Convert rotation to degrees
-	var degrees = rad_to_deg(boat_visual_rotation)
+	var degrees = rad_to_deg(p1_boat_visual_rotation)
 	
-	# Invert rotation direction if needed
 	if invert_sprite_rotation:
 		degrees = -degrees
 	
-	# Add offset and normalize to 0-360
 	degrees = fmod(degrees + sprite_rotation_offset, 360.0)
 	if degrees < 0:
 		degrees += 360.0
 	
-	# Calculate frame index (sprite starts facing right = 0 degrees)
 	var frame_index = int(round(degrees)) % total_sprite_frames
-	
-	# Clamp to valid range
 	frame_index = clampi(frame_index, 0, total_sprite_frames - 1)
 	
-	# Set the frame directly
 	animated_sprite.frame = frame_index
 
-# Helper function to get current speed (useful for UI/debugging)
 func get_current_speed() -> float:
-	return current_speed
+	return p1_current_speed
 
-# Helper function to get speed as percentage
 func get_speed_percentage() -> float:
-	return (current_speed / max_speed) * 100.0
+	return (p1_current_speed / max_speed) * 100.0
 
-# Function to apply external force (e.g., currents, wind)
 func apply_external_force(force: Vector2) -> void:
-	momentum_velocity += force
+	p1_momentum_velocity += force
 
-# Debug drawing (optional - enable in editor)
 func _draw() -> void:
 	if Engine.is_editor_hint() or OS.is_debug_build():
-		# Draw forward direction
-		draw_line(Vector2.ZERO, Vector2.RIGHT.rotated(boat_visual_rotation) * 50, Color.GREEN, 2.0)
-		# Draw velocity vector
+		draw_line(Vector2.ZERO, Vector2.RIGHT.rotated(p1_boat_visual_rotation) * 50, Color.GREEN, 2.0)
 		draw_line(Vector2.ZERO, velocity.normalized() * 50, Color.BLUE, 2.0)
