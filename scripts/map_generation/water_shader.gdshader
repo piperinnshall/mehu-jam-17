@@ -1,10 +1,10 @@
 shader_type canvas_item;
 
 uniform sampler2D water_mask;
-uniform sampler2D SCREEN_TEXTURE : hint_screen_texture, filter_linear_mipmap; // Godot 4 fix
+uniform sampler2D SCREEN_TEXTURE : hint_screen_texture, filter_linear_mipmap;
 uniform float time_scale : hint_range(0.0, 2.0) = 0.3;
 uniform float caustic_scale : hint_range(0.0, 50.0) = 15.0;
-uniform float caustic_strength : hint_range(0.0, 1.0) = 0.4;
+uniform float caustic_strength : hint_range(0.0, 1.0) = 0.4; // slightly brighter
 uniform vec2 light_direction = vec2(0.3, -0.5);
 uniform float specular_strength : hint_range(0.0, 2.0) = 0.8;
 uniform float specular_shininess : hint_range(1.0, 128.0) = 32.0;
@@ -32,26 +32,31 @@ float noise(vec2 x) {
 	return mix(a, b, u.x) + (c - a) * u.y * (1.0 - u.x) + (d - b) * u.x * u.y;
 }
 
-// Layered caustics
+// Layered caustics (slightly brighter max peaks)
 float caustics(vec2 uv, float time) {
-	vec2 p = uv * caustic_scale;
+    vec2 p = uv * caustic_scale;
+    vec2 p1 = p + vec2(time * 0.5, time * 0.3);
+    float n1 = noise(p1);
+    vec2 p2 = p - vec2(time * 0.4, time * 0.6);
+    float n2 = noise(p2);
 
-	vec2 p1 = p + vec2(time * 0.5, time * 0.3);
-	float n1 = noise(p1);
+    float raw = n1 + n2 - 1.0;
+    raw = max(raw, 0.0);
 
-	vec2 p2 = p - vec2(time * 0.4, time * 0.6);
-	float n2 = noise(p2);
-
-	return pow(abs(n1 + n2 - 1.0), 3.0) * 2.0;
+    // slightly increase brightness of strongest peaks
+    float peak = pow(raw, 4.0) * 0.9; // was 0.8
+    return peak;
 }
 
-// Crosshatch caustic overlay
+// Crosshatch caustic overlay (slightly brighter)
 float caustic_crosshatch(vec2 uv, float time) {
-	vec2 p = uv * caustic_scale * 2.0;
-	float lineX = sin(p.x + time * 2.0);
-	float lineY = sin(p.y + time * 2.5);
-	return pow(abs(lineX * lineY), 2.0);
+    vec2 p = uv * caustic_scale * 2.0;
+    float lineX = sin(p.x + time * 2.0);
+    float lineY = sin(p.y + time * 2.5);
+    float hatch = abs(lineX * lineY);
+    return pow(hatch, 2.5) * 0.09; // was 0.08
 }
+
 
 // Water wave normals
 vec2 water_normal(vec2 uv, float time) {
@@ -86,14 +91,14 @@ void fragment() {
 		// Combine base color with refraction
 		vec3 water_color = mix(original.rgb, underneath, 0.3);
 
-		// Add caustics and hatch
+		// Add caustics and crosshatch
 		water_color += vec3(base_caustics) * caustic_strength;
-		water_color += vec3(hatch) * 0.1;
+		water_color += vec3(hatch);
 
 		// Add ripples
 		water_color += vec3(ripples(UV, time));
 
-		// Add foam along crests
+		// Foam along crests
 		float foam = smoothstep(0.4, 0.6, base_caustics);
 		water_color += vec3(1.0) * foam * foam_strength;
 
@@ -104,6 +109,7 @@ void fragment() {
 		vec3 view_dir = vec3(0.0, 0.0, 1.0);
 		vec3 halfway = normalize(light_dir_3d + view_dir);
 		float spec = pow(max(dot(normal, halfway), 0.0), specular_shininess);
+		spec = clamp(spec, 0.0, 0.3);
 		water_color += vec3(1.0, 1.0, 0.9) * spec * specular_strength;
 
 		COLOR = vec4(water_color, original.a);
