@@ -35,6 +35,10 @@ class_name Player2Boat
 var cannon_ball_scene: PackedScene = preload("res://scenes/cannon_ball.tscn")
 var cannon_fire_scene: PackedScene = preload("res://scenes/cannon_fire.tscn")
 
+# Explosion parameters
+var boat_explosion_scene: PackedScene = preload("res://scenes/boat_explosion.tscn")
+@export var explosion_delay_before_removal: float = 0.75  # Time to show explosion before removing boat
+
 # Wake parameters
 @export var wake_spawn_rate: float = 0.03  # Time between wake particles
 @export var wake_speed_threshold: float = 20.0  # Minimum speed to create wake
@@ -51,6 +55,7 @@ var p2_momentum_velocity: Vector2 = Vector2.ZERO
 var p2_boat_visual_rotation: float = 0.0
 var cannon_cooldown_timer: float = 0.0
 var player1_boat: Node = null
+var is_destroyed: bool = false
 
 # Wind reference
 var wind_manager: Node = null
@@ -126,6 +131,10 @@ func _is_on_water() -> bool:
 	return true  # For now, assume always on water
 
 func _physics_process(delta: float) -> void:
+	# Don't process physics if destroyed
+	if is_destroyed:
+		return
+	
 	# Update cannon cooldown
 	if cannon_cooldown_timer > 0.0:
 		cannon_cooldown_timer -= delta
@@ -318,10 +327,28 @@ func apply_external_force(force: Vector2) -> void:
 	p2_momentum_velocity += force
 
 func hit_by_cannonball() -> void:
-	# Player 2 gets hit - remove from scene
+	if is_destroyed:
+		return
+	
+	is_destroyed = true
+	
+	# Stop movement
+	velocity = Vector2.ZERO
+	p2_current_speed = 0.0
+	
+	# Hide the boat sprite
+	if animated_sprite:
+		animated_sprite.visible = false
+	
+	# Disable collision
+	if collision_shape:
+		collision_shape.set_deferred("disabled", true)
+	
+	# Spawn explosion at boat's position
+	var explosion = boat_explosion_scene.instantiate()
+	get_parent().add_child(explosion)
+	explosion.global_position = global_position
+	
+	# Schedule removal of the boat after a delay
+	await get_tree().create_timer(explosion_delay_before_removal).timeout
 	queue_free()
-
-func _draw() -> void:
-	if Engine.is_editor_hint() or OS.is_debug_build():
-		draw_line(Vector2.ZERO, Vector2.RIGHT.rotated(p2_boat_visual_rotation) * 50, Color.GREEN, 2.0)
-		draw_line(Vector2.ZERO, velocity.normalized() * 50, Color.BLUE, 2.0)

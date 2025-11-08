@@ -365,7 +365,7 @@
 [ext_resource type="Texture2D" uid="uid://cn8jtfjlhvkey" path="res://assets/p1p2.png" id="363_0wgfw"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_0wgfw"]
-radius = 14.0
+radius = 20.396078
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_4ewxu"]
 animations = [{

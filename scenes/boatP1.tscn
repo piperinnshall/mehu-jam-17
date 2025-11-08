@@ -365,7 +365,7 @@
 [ext_resource type="Texture2D" uid="uid://cn8jtfjlhvkey" path="res://assets/p1p2.png" id="363_42wml"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_42wml"]
-radius = 15.008331
+radius = 21.00595
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_4ewxu"]
 animations = [{
@@ -1479,4 +1479,4 @@ region_enabled = true
 region_rect = Rect2(170, 51, 243, 142)
 
 [node name="WakeMarker" type="Marker2D" parent="."]
-position = Vector2(0, 8)
+position = Vector2(-3, 10)
