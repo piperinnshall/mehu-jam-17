@@ -1,0 +1,76 @@
+extends Node2D
+
+@export var settings: MapSettings
+
+var base_noise := FastNoiseLite.new()
+var detail_noise := FastNoiseLite.new()
+var forest_noise := FastNoiseLite.new()
+
+func _ready():
+	randomize()
+	_setup_noises()
+	var img = _generate_map()
+	var tex = ImageTexture.create_from_image(img)
+	
+	var sprite = Sprite2D.new()
+	sprite.texture = tex
+	sprite.position = Vector2(settings.width/2, settings.height/2)
+	add_child(sprite)
+
+func _setup_noises():
+	base_noise.seed = randi()
+	base_noise.noise_type = FastNoiseLite.NoiseType.TYPE_SIMPLEX_SMOOTH
+	base_noise.frequency = settings.base_freq
+	base_noise.fractal_octaves = settings.base_octaves
+
+	detail_noise.seed = randi()
+	detail_noise.noise_type = FastNoiseLite.NoiseType.TYPE_SIMPLEX_SMOOTH
+	detail_noise.frequency = settings.detail_freq
+	detail_noise.fractal_octaves = settings.detail_octaves
+	detail_noise.fractal_gain = settings.detail_gain
+
+	forest_noise.seed = randi()
+	forest_noise.noise_type = FastNoiseLite.NoiseType.TYPE_VALUE_CUBIC
+	forest_noise.frequency = settings.detail_freq * 2  # finer
+	forest_noise.fractal_octaves = 2
+
+func _generate_map() -> Image:
+	var img: Image = Image.create(settings.width, settings.height, false, Image.FORMAT_RGB8)
+	var center_x = settings.width / 2
+	var center_y = settings.height / 2
+	var max_dist = min(center_x, center_y)
+
+	for y in range(settings.height):
+		for x in range(settings.width):
+			var dx = (x - center_x) / max_dist
+			var dy = (y - center_y) / max_dist
+			var distance = sqrt(dx*dx + dy*dy)
+
+			var base_val = (base_noise.get_noise_2d(x, y) + 1.0) / 2.0
+			var mask = 1.0 - distance
+			var height_val = base_val * mask
+
+			var detail_val = (detail_noise.get_noise_2d(x, y) + 1.0) / 2.0
+			height_val += detail_val * settings.detail_gain
+			height_val = clamp(height_val, 0.0, 1.0)
+
+			# Sharpen forests
+			var forest_val = (forest_noise.get_noise_2d(x, y) + 1.0) / 2.0
+			if forest_val > settings.forest_thresh:
+				height_val = pow(height_val, 1.5)  # sharpen terrain
+
+			var color: Color
+			if height_val < settings.water_thresh:
+				color = settings.water_colors[0].lerp(settings.water_colors[2], height_val / settings.water_thresh)
+			elif height_val < settings.sand_thresh:
+				var t = (height_val - settings.water_thresh) / (settings.sand_thresh - settings.water_thresh)
+				color = settings.sand_colors[0].lerp(settings.sand_colors[2], t)
+			elif height_val < settings.forest_thresh:
+				var t = (height_val - settings.sand_thresh) / (settings.forest_thresh - settings.sand_thresh)
+				color = settings.land_colors[0].lerp(settings.land_colors[2], t)
+			else:
+				color = settings.forest_colors[0].lerp(settings.forest_colors[2], (height_val - settings.forest_thresh) / (1.0 - settings.forest_thresh))
+
+			img.set_pixel(x, y, color)
+
+	return img
