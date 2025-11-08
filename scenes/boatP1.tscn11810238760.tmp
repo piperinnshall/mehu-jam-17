@@ -365,7 +365,7 @@
 [ext_resource type="Texture2D" uid="uid://cn8jtfjlhvkey" path="res://assets/p1p2.png" id="363_42wml"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_42wml"]
-radius = 15.008331
+radius = 12.093387
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_4ewxu"]
 animations = [{
@@ -1461,7 +1461,6 @@ animations = [{
 [node name="CharacterBody2D" type="CharacterBody2D"]
 script = ExtResource("1_nxxbe")
 invert_sprite_rotation = true
-cannon_offset = 40.0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 position = Vector2(0, 7.5)

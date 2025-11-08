@@ -1,0 +1,80 @@
+[gd_scene load_steps=12 format=3 uid="uid://mta1djsqmigi"]
+
+[ext_resource type="Texture2D" uid="uid://b7ecbtdq7x76k" path="res://assets/firing.png" id="1_w0dbb"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_rdrgb"]
+atlas = ExtResource("1_w0dbb")
+region = Rect2(132, 0, 132, 69)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_w1elb"]
+atlas = ExtResource("1_w0dbb")
+region = Rect2(264, 0, 132, 69)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_arhih"]
+atlas = ExtResource("1_w0dbb")
+region = Rect2(396, 0, 132, 69)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_siokq"]
+atlas = ExtResource("1_w0dbb")
+region = Rect2(0, 69, 132, 69)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_cxh1h"]
+atlas = ExtResource("1_w0dbb")
+region = Rect2(132, 69, 132, 69)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_fn22b"]
+atlas = ExtResource("1_w0dbb")
+region = Rect2(264, 69, 132, 69)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_w33v7"]
+atlas = ExtResource("1_w0dbb")
+region = Rect2(396, 69, 132, 69)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_416ja"]
+atlas = ExtResource("1_w0dbb")
+region = Rect2(0, 138, 132, 69)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_l4aeo"]
+atlas = ExtResource("1_w0dbb")
+region = Rect2(396, 138, 132, 69)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_tiijp"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_rdrgb")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_w1elb")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_arhih")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_siokq")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_cxh1h")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_fn22b")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_w33v7")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_416ja")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_l4aeo")
+}],
+"loop": false,
+"name": &"default",
+"speed": 24.0
+}]
+
+[node name="CannonFire" type="AnimatedSprite2D"]
+modulate = Color(1, 1, 1, 0.5921569)
+sprite_frames = SubResource("SpriteFrames_tiijp")
+frame = 8
+frame_progress = 1.0
