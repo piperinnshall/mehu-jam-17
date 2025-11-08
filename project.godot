@@ -10,9 +10,9 @@ config_version=5
 
 [application]
 
-config/name="Gaea Procedural Generation Tutorial"
+config/name="mehu-jam-17"
 run/main_scene="uid://dg52nd3iqwge6"
-config/features=PackedStringArray("4.5", "Forward Plus")
+config/features=PackedStringArray("4.4", "Forward Plus")
 config/icon="res://assets/icon.svg"
 
 [display]
