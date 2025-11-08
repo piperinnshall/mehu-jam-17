@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://dj35wk0tc0a10"]
+
+[ext_resource type="Script" uid="uid://kxgqdg0j8jqq" path="res://scripts/wake_particle.gd" id="1_0voxo"]
+
+[node name="wake_particle" type="Node2D"]
+script = ExtResource("1_0voxo")

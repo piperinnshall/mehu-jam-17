@@ -1468,6 +1468,7 @@ position = Vector2(0, 7.5)
 shape = SubResource("CircleShape2D_42wml")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+z_index = 2
 sprite_frames = SubResource("SpriteFrames_4ewxu")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
@@ -1476,3 +1477,6 @@ scale = Vector2(0.17832169, 0.17832167)
 texture = ExtResource("363_42wml")
 region_enabled = true
 region_rect = Rect2(170, 51, 243, 142)
+
+[node name="WakeMarker" type="Marker2D" parent="."]
+position = Vector2(0, 8)
