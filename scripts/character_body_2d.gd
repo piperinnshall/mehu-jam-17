@@ -33,6 +33,7 @@ class_name Player1Boat
 @export var cannon_ball_speed: float = 400.0
 @export var cannon_offset: float = 30.0
 var cannon_ball_scene: PackedScene = preload("res://scenes/cannon_ball.tscn")
+var cannon_fire_scene: PackedScene = preload("res://scenes/cannon_fire.tscn")
 
 # Internal variables - P1 specific
 var p1_current_speed: float = 0.0
@@ -142,15 +143,18 @@ func _fire_cannon() -> void:
 	var dot_product = to_p2.dot(right)
 	var fire_direction: Vector2
 	var spawn_offset: Vector2
+	var fire_rotation: float
 	
 	if dot_product > 0:
 		# P2 is on the right side
 		fire_direction = right
 		spawn_offset = right * cannon_offset
+		fire_rotation = p1_boat_visual_rotation + PI / 2.0
 	else:
 		# P2 is on the left side
 		fire_direction = -right
 		spawn_offset = -right * cannon_offset
+		fire_rotation = p1_boat_visual_rotation - PI / 2.0
 	
 	# Spawn cannon ball
 	var cannon_ball = cannon_ball_scene.instantiate()
@@ -160,6 +164,12 @@ func _fire_cannon() -> void:
 	# Set cannon ball velocity
 	var cannon_velocity = fire_direction * cannon_ball_speed
 	cannon_ball.initialize(cannon_velocity)
+	
+	# Spawn cannon fire animation
+	var cannon_fire = cannon_fire_scene.instantiate()
+	get_parent().add_child(cannon_fire)
+	cannon_fire.global_position = global_position + spawn_offset
+	cannon_fire.global_rotation = fire_rotation
 
 func _calculate_wind_effect() -> float:
 	if not wind_manager:
