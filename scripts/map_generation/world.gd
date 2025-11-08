@@ -171,8 +171,7 @@ func _generate_map(img: Image, mask_img: Image) -> void:
 			# ------------------------
 			var color: Color
 			if height_val <= LAND_MAX:
-				var t = height_val / LAND_MAX
-				color = land_colors[0].lerp(land_colors[2], t)
+				color = land_colors[2]
 			elif height_val <= SAND_MAX:
 				var t = (height_val - LAND_MAX) / (SAND_MAX - LAND_MAX)
 				color = sand_colors[0].lerp(sand_colors[2], t)

@@ -3,10 +3,10 @@ extends CharacterBody2D
 class_name Player1Boat
 
 # Movement parameters
-@export var max_speed: float = 200.0
+@export var max_speed: float = 150.0
 @export var min_base_speed: float = 25.0
-@export var acceleration: float = 100.0
-@export var deceleration: float = 50.0
+@export var acceleration: float = 50.0
+@export var deceleration: float = 40.0
 @export var drift_factor: float = 0.95
 
 # Turning parameters
@@ -19,7 +19,7 @@ class_name Player1Boat
 @export var min_speed_threshold: float = 10.0
 
 # Wind physics
-@export var wind_boost_strength: float = 200.0
+@export var wind_boost_strength: float = 120.0
 @export var wind_resistance_strength: float = 20.0
 @export var wind_angle_threshold: float = 70.0
 
@@ -35,6 +35,15 @@ class_name Player1Boat
 var cannon_ball_scene: PackedScene = preload("res://scenes/cannon_ball.tscn")
 var cannon_fire_scene: PackedScene = preload("res://scenes/cannon_fire.tscn")
 
+# Wake parameters
+@export var wake_spawn_rate: float = 0.03  # Time between wake particles
+@export var wake_speed_threshold: float = 20.0  # Minimum speed to create wake
+@export var wake_spread_angle: float = 95.0  # Angle of V wake in degrees
+@export var wake_lateral_speed: float = 90.0  # Speed particles move outward
+var wake_particle_scene: PackedScene = preload("res://scenes/wake_particle.tscn")
+var wake_timer: float = 0.0
+var wake_container: Node2D = null
+
 # Internal variables - P1 specific
 var p1_current_speed: float = 0.0
 var p1_target_rotation: float = 0.0
@@ -46,8 +55,12 @@ var player2_boat: Node = null
 # Wind reference
 var wind_manager: Node = null
 
+# Map reference for water detection
+var map_generator: Node = null
+
 @onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var collision_shape: CollisionShape2D = $CollisionShape2D
+@onready var wake_marker: Marker2D = $WakeMarker
 
 func _ready() -> void:
 	p1_boat_visual_rotation = 0.0
@@ -56,8 +69,18 @@ func _ready() -> void:
 	if animated_sprite:
 		animated_sprite.stop()
 	
+	# Create wake container that renders below the boat
+	wake_container = Node2D.new()
+	wake_container.name = "WakeContainer"
+	wake_container.z_index = -1  # Render behind boat
+	call_deferred("_add_wake_container")
+	
 	call_deferred("_find_wind_manager")
 	call_deferred("_find_player2")
+	call_deferred("_find_map_generator")
+
+func _add_wake_container() -> void:
+	get_parent().add_child(wake_container)
 
 func _find_wind_manager() -> void:
 	var root = get_tree().root
@@ -66,6 +89,10 @@ func _find_wind_manager() -> void:
 func _find_player2() -> void:
 	var root = get_tree().root
 	player2_boat = _find_node_by_class_name(root, "Player2Boat")
+
+func _find_map_generator() -> void:
+	var root = get_tree().root
+	map_generator = _find_node_by_name(root, "MapGenerator")
 
 func _find_node_by_class_name(node: Node, target_class: String) -> Node:
 	if node.get_script():
@@ -80,6 +107,23 @@ func _find_node_by_class_name(node: Node, target_class: String) -> Node:
 			return result
 	
 	return null
+
+func _find_node_by_name(node: Node, target_name: String) -> Node:
+	if node.name == target_name:
+		return node
+	
+	for child in node.get_children():
+		var result = _find_node_by_name(child, target_name)
+		if result:
+			return result
+	
+	return null
+
+func _is_on_water() -> bool:
+	if not map_generator:
+		return true  # Default to true if map not found
+	
+	return true  # For now, assume always on water
 
 func _physics_process(delta: float) -> void:
 	# Update cannon cooldown
@@ -123,9 +167,57 @@ func _physics_process(delta: float) -> void:
 	move_and_slide()
 	update_sprite_frame()
 	
+	# Update wake system
+	_update_wake(delta, effective_speed)
+	
 	# P1 collision
 	if get_slide_collision_count() > 0:
 		p1_current_speed *= 0.5
+
+func _update_wake(delta: float, effective_speed: float) -> void:
+	# Only spawn wake if on water and moving fast enough
+	if not _is_on_water() or effective_speed < wake_speed_threshold:
+		return
+	
+	wake_timer -= delta
+	
+	if wake_timer <= 0.0:
+		wake_timer = wake_spawn_rate
+		_spawn_wake_particles()
+
+func _spawn_wake_particles() -> void:
+	if not wake_marker:
+		return
+	
+	# Get the boat's forward direction
+	var forward = Vector2.RIGHT.rotated(p1_boat_visual_rotation)
+	var backward = -forward
+	
+	# Calculate perpendicular direction (right side of boat)
+	var right = forward.rotated(PI / 2.0)
+	
+	# Convert wake spread angle to radians
+	var spread_rad = deg_to_rad(wake_spread_angle)
+	
+	# Spawn left wake particle (angled to the left)
+	var left_direction = backward.rotated(-spread_rad)
+	_create_wake_particle(wake_marker.global_position, left_direction)
+	
+	# Spawn right wake particle (angled to the right)
+	var right_direction = backward.rotated(spread_rad)
+	_create_wake_particle(wake_marker.global_position, right_direction)
+
+func _create_wake_particle(pos: Vector2, direction: Vector2) -> void:
+	if not wake_particle_scene or not wake_container:
+		return
+	
+	var wake = wake_particle_scene.instantiate()
+	wake_container.add_child(wake)
+	wake.global_position = pos
+	
+	# Set velocity in the specified direction
+	if "velocity" in wake:
+		wake.velocity = direction.normalized() * wake_lateral_speed
 
 func _fire_cannon() -> void:
 	if not player2_boat:

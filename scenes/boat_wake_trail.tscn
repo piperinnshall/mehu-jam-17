@@ -1,0 +1,20 @@
+[gd_scene load_steps=5 format=3 uid="uid://djqbc10m5e5hr"]
+
+[ext_resource type="Shader" uid="uid://dqei2x43yg3ab" path="res://shaders/boat_wake_trail.gdshader" id="1_2sopl"]
+[ext_resource type="Script" uid="uid://d11vbsiaow25n" path="res://scripts/boat_wake_trail.gd" id="1_ct0m1"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_cdpkm"]
+shader = ExtResource("1_2sopl")
+shader_parameter/InitialAlpha = 0.6
+shader_parameter/Speed = 0.09
+shader_parameter/QuantizeColourAmount = 3.0
+shader_parameter/BrightnessOffset = 0.0
+shader_parameter/UpperCutoff = 0.5
+
+[sub_resource type="Curve" id="Curve_2sopl"]
+
+[node name="BoatWakeTrail" type="Line2D"]
+z_index = 1
+material = SubResource("ShaderMaterial_cdpkm")
+width_curve = SubResource("Curve_2sopl")
+script = ExtResource("1_ct0m1")
