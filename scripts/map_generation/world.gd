@@ -11,18 +11,11 @@ var base_noise := FastNoiseLite.new()
 var detail_noise := FastNoiseLite.new()
 
 # Color palettes
-# var water_colors = [
-	# Color(0.0, 0.0, 0.2),  # deep
-	# Color(0.0, 0.1, 0.4),
-	# Color(0.0, 0.3, 0.6), # shallow
-#]
-
 var water_colors = [
 	Color(0.4, 0.7, 0.9), # deep
 	Color(0.2, 0.5, 0.7),
 	Color(0.1, 0.3, 0.5), # shallow
 ]
-
 
 var sand_colors = [
 	Color(0.9, 0.85, 0.6),
@@ -46,15 +39,15 @@ const WATER_MAX: float = 1.0
 # ========================
 # RADIAL FALL-OFF (islands)
 # ========================
-const FALLOFF_START: float = 0.35   # normalized distance where falloff begins
-const FALLOFF_END: float   = 0.9    # normalized distance where falloff ends
-const FALLOFF_EXPONENT: float = 1.6 # controls falloff sharpness
-var invert_falloff: bool = false     # false: center higher (more likely water), edges lower
+const FALLOFF_START: float = 0.35
+const FALLOFF_END: float   = 0.9
+const FALLOFF_EXPONENT: float = 1.6
+var invert_falloff: bool = false
 
 # ========================
 # SQUARE BORDER CONFIGURATION
 # ========================
-const BORDER_WIDTH: int = 200  # pixels of land+sand border
+const BORDER_WIDTH: int = 200
 
 # ========================
 # READY FUNCTION
@@ -67,17 +60,27 @@ func _ready():
 	var img: Image = Image.create(WIDTH, HEIGHT, false, Image.FORMAT_RGB8)
 	print("Image created with size: ", img.get_width(), "x", img.get_height())
  
+	# Create water mask image (grayscale)
+	var mask_img: Image = Image.create(WIDTH, HEIGHT, false, Image.FORMAT_L8)
+	
 	var start_time = Time.get_ticks_msec()
 	
-	# Generate the map
-	_generate_map(img)
+	# Generate the map and mask simultaneously
+	_generate_map(img, mask_img)
 
-	# Convert to texture and display
+	# Convert map to texture and display
 	var tex: ImageTexture = ImageTexture.create_from_image(img)
 	var sprite: Sprite2D = Sprite2D.new()
 	sprite.texture = tex
 	sprite.position = Vector2(WIDTH / 2, HEIGHT / 2)
 	add_child(sprite)
+	
+	# Create shader material for water effect
+	var water_mask_tex: ImageTexture = ImageTexture.create_from_image(mask_img)
+	var shader_material = ShaderMaterial.new()
+	shader_material.shader = preload("res://scripts/map_generation/water_shader.gdshader")
+	shader_material.set_shader_parameter("water_mask", water_mask_tex)
+	sprite.material = shader_material
 	
 	var time = Time.get_ticks_msec() - start_time
 	print("Ms elapsed: ", time)
@@ -105,13 +108,10 @@ func _setup_noise():
 # ========================
 # HELPER FUNCTIONS
 # ========================
-# Smoothstep function for smooth interpolation
 func _smoothstep(edge0: float, edge1: float, x: float) -> float:
 	var t = clamp((x - edge0) / max(edge1 - edge0, 0.00001), 0.0, 1.0)
 	return t * t * (3.0 - 2.0 * t)
 
-# Border mask for square edges
-# Returns 0 at edge, 1 inside map beyond BORDER_WIDTH
 func _border_mask(x: int, y: int) -> float:
 	var nx = min(x, WIDTH - 1 - x) / float(BORDER_WIDTH)
 	var ny = min(y, HEIGHT - 1 - y) / float(BORDER_WIDTH)
@@ -120,7 +120,7 @@ func _border_mask(x: int, y: int) -> float:
 # ========================
 # MAP GENERATION
 # ========================
-func _generate_map(img: Image) -> void:
+func _generate_map(img: Image, mask_img: Image) -> void:
 	var center_x = WIDTH / 2
 	var center_y = HEIGHT / 2
 	var max_dist = min(center_x, center_y)
@@ -157,9 +157,14 @@ func _generate_map(img: Image) -> void:
 			# ------------------------
 			var border_t = _border_mask(x, y)
 			if border_t < 1.0:
-				var target = LAND_MAX * 0.8  # solid land, a bit below max for variety
+				var target = LAND_MAX * 0.8
 				height_val = lerp(target, height_val, border_t)
 				
+			# ------------------------
+			# WATER MASK GENERATION
+			# ------------------------
+			var is_water = 1.0 if height_val > SAND_MAX else 0.0
+			mask_img.set_pixel(x, y, Color(is_water, is_water, is_water))
 				
 			# ------------------------
 			# COLOR MAPPING
