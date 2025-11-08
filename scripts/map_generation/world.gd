@@ -14,7 +14,7 @@ var detail_noise := FastNoiseLite.new()
 var water_colors = [
 	Color(0.4, 0.7, 0.9), # deep
 	Color(0.2, 0.5, 0.7),
-	Color(0.1, 0.3, 0.5), # shallow
+	Color(0.1, 0.3, 0.5)  # shallow
 ]
 
 var sand_colors = [
@@ -56,16 +56,14 @@ func _ready():
 	randomize()
 	_setup_noise()
 
-	# Create image
+	# Create images
 	var img: Image = Image.create(WIDTH, HEIGHT, false, Image.FORMAT_RGB8)
-	print("Image created with size: ", img.get_width(), "x", img.get_height())
- 
-	# Create water mask image (grayscale)
 	var mask_img: Image = Image.create(WIDTH, HEIGHT, false, Image.FORMAT_L8)
+	print("Image created with size: ", img.get_width(), "x", img.get_height())
 	
 	var start_time = Time.get_ticks_msec()
-	
-	# Generate the map and mask simultaneously
+
+	# Generate the map + hitbox mask simultaneously
 	_generate_map(img, mask_img)
 
 	# Convert map to texture and display
@@ -75,7 +73,7 @@ func _ready():
 	sprite.position = Vector2(WIDTH / 2, HEIGHT / 2)
 	add_child(sprite)
 	
-	# Create shader material for water effect
+	# Water shader
 	var water_mask_tex: ImageTexture = ImageTexture.create_from_image(mask_img)
 	var shader_material = ShaderMaterial.new()
 	shader_material.shader = preload("res://scripts/map_generation/water_shader.gdshader")
@@ -83,7 +81,7 @@ func _ready():
 	sprite.material = shader_material
 	
 	var time = Time.get_ticks_msec() - start_time
-	print("Ms elapsed: ", time)
+	print("Map generation complete in ", time, " ms")
 
 # ========================
 # NOISE SETUP
@@ -124,6 +122,11 @@ func _generate_map(img: Image, mask_img: Image) -> void:
 	var center_x = WIDTH / 2
 	var center_y = HEIGHT / 2
 	var max_dist = min(center_x, center_y)
+
+	# Create BitMap for grass mask (for hitbox)
+	var bm := BitMap.new()
+	bm.create(Vector2i(WIDTH, HEIGHT))
+
 
 	for y in range(HEIGHT):
 		for x in range(WIDTH):
@@ -167,11 +170,17 @@ func _generate_map(img: Image, mask_img: Image) -> void:
 			mask_img.set_pixel(x, y, Color(is_water, is_water, is_water))
 				
 			# ------------------------
-			# COLOR MAPPING
+			# COLOR + GRASS MASK
 			# ------------------------
 			var color: Color
 			if height_val <= LAND_MAX:
-				color = land_colors[2]
+				var t = height_val / LAND_MAX
+				color = land_colors[0].lerp(land_colors[2], t)
+
+				# Record grass hitbox points every 2 pixels for speed
+				if (x % 2 == 0 and y % 2 == 0):
+					bm.set_bit(x, y, true)
+
 			elif height_val <= SAND_MAX:
 				var t = (height_val - LAND_MAX) / (SAND_MAX - LAND_MAX)
 				color = sand_colors[0].lerp(sand_colors[2], t)
@@ -180,3 +189,20 @@ func _generate_map(img: Image, mask_img: Image) -> void:
 				color = water_colors[0].lerp(water_colors[2], t)
 
 			img.set_pixel(x, y, color)
+
+	# ========================
+	# BUILD GRASS HITBOX FROM MASK
+	# ========================
+	print("Generating grass hitbox polygons...")
+	var polys = bm.opaque_to_polygons(Rect2(Vector2.ZERO, Vector2(WIDTH, HEIGHT)), 4.0)
+
+	var static_body := StaticBody2D.new()
+	static_body.name = "GrassHitbox"
+	add_child(static_body)
+
+	for poly in polys:
+		var shape := CollisionPolygon2D.new()
+		shape.polygon = poly
+		static_body.add_child(shape)
+
+	print("Grass hitbox generated: ", polys.size(), " polygons.")
