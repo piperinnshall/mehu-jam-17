@@ -3,13 +3,14 @@ extends Node2D
 # ========================
 # CONFIGURATION
 # ========================
+const WIDTH: int = 2000
+const HEIGHT: int = 2000
 
-const WIDTH: int = 512  # start small for testing
-const HEIGHT: int = 512
-
+# Noise generators
 var base_noise := FastNoiseLite.new()
 var detail_noise := FastNoiseLite.new()
 
+# Color palettes
 var water_colors = [
 	Color(0.0, 0.0, 0.2),  # deep
 	Color(0.0, 0.1, 0.4),
@@ -29,30 +30,56 @@ var land_colors = [
 ]
 
 # ========================
+# HEIGHT RANGES
+# ========================
+const LAND_MAX: float = 0.36
+const SAND_MAX: float = 0.39
+const WATER_MAX: float = 1.0
+
+# ========================
+# RADIAL FALL-OFF (islands)
+# ========================
+const FALLOFF_START: float = 0.35   # normalized distance where falloff begins
+const FALLOFF_END: float   = 0.9    # normalized distance where falloff ends
+const FALLOFF_EXPONENT: float = 1.6 # controls falloff sharpness
+var invert_falloff: bool = false     # false: center higher (more likely water), edges lower
+
+# ========================
+# SQUARE BORDER CONFIGURATION
+# ========================
+const BORDER_WIDTH: int = 200  # pixels of land+sand border
+
+# ========================
 # READY FUNCTION
 # ========================
-
 func _ready():
 	randomize()
 	_setup_noise()
-	
-	# Static Image.create() in Godot 4
+
+	# Create image
 	var img: Image = Image.create(WIDTH, HEIGHT, false, Image.FORMAT_RGB8)
 	print("Image created with size: ", img.get_width(), "x", img.get_height())
+ 
+	var start_time = Time.get_ticks_msec()
 	
+	# Generate the map
 	_generate_map(img)
-	
+
+	# Convert to texture and display
 	var tex: ImageTexture = ImageTexture.create_from_image(img)
 	var sprite: Sprite2D = Sprite2D.new()
 	sprite.texture = tex
-	sprite.position = Vector2(WIDTH/2, HEIGHT/2)
+	sprite.position = Vector2(WIDTH / 2, HEIGHT / 2)
 	add_child(sprite)
+	
+	var time = Time.get_ticks_msec() - start_time
+	print("Ms elapsed: ", time)
 
 # ========================
 # NOISE SETUP
 # ========================
-
 func _setup_noise():
+	# Base noise (large scale)
 	base_noise.seed = randi()
 	base_noise.noise_type = FastNoiseLite.NoiseType.TYPE_SIMPLEX_SMOOTH
 	base_noise.frequency = 0.003
@@ -60,6 +87,7 @@ func _setup_noise():
 	base_noise.fractal_lacunarity = 2
 	base_noise.fractal_gain = 0.5
 
+	# Detail noise (small scale)
 	detail_noise.seed = randi()
 	detail_noise.noise_type = FastNoiseLite.NoiseType.TYPE_SIMPLEX_SMOOTH
 	detail_noise.frequency = 0.02
@@ -68,9 +96,23 @@ func _setup_noise():
 	detail_noise.fractal_gain = 0.5
 
 # ========================
+# HELPER FUNCTIONS
+# ========================
+# Smoothstep function for smooth interpolation
+func _smoothstep(edge0: float, edge1: float, x: float) -> float:
+	var t = clamp((x - edge0) / max(edge1 - edge0, 0.00001), 0.0, 1.0)
+	return t * t * (3.0 - 2.0 * t)
+
+# Border mask for square edges
+# Returns 0 at edge, 1 inside map beyond BORDER_WIDTH
+func _border_mask(x: int, y: int) -> float:
+	var nx = min(x, WIDTH - 1 - x) / float(BORDER_WIDTH)
+	var ny = min(y, HEIGHT - 1 - y) / float(BORDER_WIDTH)
+	return clamp(min(nx, ny), 0.0, 1.0)
+
+# ========================
 # MAP GENERATION
 # ========================
-
 func _generate_map(img: Image) -> void:
 	var center_x = WIDTH / 2
 	var center_y = HEIGHT / 2
@@ -78,26 +120,52 @@ func _generate_map(img: Image) -> void:
 
 	for y in range(HEIGHT):
 		for x in range(WIDTH):
+			# ------------------------
+			# RADIAL DISTANCE (island falloff)
+			# ------------------------
 			var dx = (x - center_x) / max_dist
 			var dy = (y - center_y) / max_dist
-			var distance = sqrt(dx*dx + dy*dy)
-			
-			var base_val = (base_noise.get_noise_2d(x, y) + 1.0) / 2.0
-			var mask = 1.0 - distance
+			var distance = sqrt(dx * dx + dy * dy)
+
+			# ------------------------
+			# NOISE GENERATION
+			# ------------------------
+			var base_val = (base_noise.get_noise_2d(x, y) + 1.0) * 0.5
+			var detail_val = (detail_noise.get_noise_2d(x, y) + 1.0) * 0.5
+
+			# ------------------------
+			# RADIAL FALL-OFF MASK
+			# ------------------------
+			var fall_t = _smoothstep(FALLOFF_START, FALLOFF_END, distance)
+			var mask = pow(1.0 - fall_t, FALLOFF_EXPONENT)
+			if invert_falloff:
+				mask = 1.0 - mask
+
 			var height_val = base_val * mask
-			var detail_val = (detail_noise.get_noise_2d(x, y) + 1.0) / 2.0
-			height_val += detail_val * 0.1
+			height_val += detail_val * 0.08 * mask
 			height_val = clamp(height_val, 0.0, 1.0)
 
-			# Adjusted thresholds: more water, narrow sand
+			# ------------------------
+			# BORDER ENFORCEMENT
+			# ------------------------
+			var border_t = _border_mask(x, y)
+			if border_t < 1.0:
+				# blend height into LAND+SAND range
+				var target = LAND_MAX + randf() * (SAND_MAX - LAND_MAX)
+				height_val = lerp(target, height_val, border_t)
+
+			# ------------------------
+			# COLOR MAPPING
+			# ------------------------
 			var color: Color
-			if height_val < 0.4:
-				color = water_colors[0].lerp(water_colors[2], height_val / 0.4)
-			elif height_val < 0.42:
-				var t = (height_val - 0.4) / 0.02
+			if height_val <= LAND_MAX:
+				var t = height_val / LAND_MAX
+				color = land_colors[0].lerp(land_colors[2], t)
+			elif height_val <= SAND_MAX:
+				var t = (height_val - LAND_MAX) / (SAND_MAX - LAND_MAX)
 				color = sand_colors[0].lerp(sand_colors[2], t)
 			else:
-				var t = (height_val - 0.42) / 0.58
-				color = land_colors[0].lerp(land_colors[2], t)
+				var t = (height_val - SAND_MAX) / (WATER_MAX - SAND_MAX)
+				color = water_colors[0].lerp(water_colors[2], t)
 
 			img.set_pixel(x, y, color)
