@@ -13,7 +13,7 @@ config_version=5
 config/name="Gaea Procedural Generation Tutorial"
 run/main_scene="uid://dg52nd3iqwge6"
 config/features=PackedStringArray("4.4", "Forward Plus")
-config/icon="res://artwork/icon.svg"
+config/icon="res://assets/icon.svg"
 
 [display]
 

@@ -1,0 +1,10 @@
+[gd_resource type="TileSet" load_steps=3 format=3 uid="uid://bkrrqc6gcp84c"]
+
+[ext_resource type="Texture2D" uid="uid://dt3k8hksru3us" path="res://assets/top-down-generation/water_full.png" id="1_jg77l"]
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_u54g8"]
+texture = ExtResource("1_jg77l")
+0:0/0 = 0
+
+[resource]
+sources/0 = SubResource("TileSetAtlasSource_u54g8")
