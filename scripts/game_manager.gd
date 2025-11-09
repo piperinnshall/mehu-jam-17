@@ -220,7 +220,4 @@ func _show_victory_message(winner: int) -> void:
 func _return_to_menu() -> void:
 	print("Returning to menu...")
 	
-	set_process(false)
-	set_physics_process(false)
-	
-	get_tree().change_scene_to_file("res://scenes/Menu.tscn")
+	get_tree().change_scene_to_file("res://scenes/menu.tscn")
