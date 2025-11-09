@@ -3,8 +3,8 @@ extends Node2D
 # ========================
 # CONFIGURATION
 # ========================
-const WIDTH: int = 1700
-const HEIGHT: int = 1700
+const WIDTH: int = 500
+const HEIGHT: int = 500
 
 # Noise generators
 var base_noise := FastNoiseLite.new()

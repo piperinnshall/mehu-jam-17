@@ -220,7 +220,7 @@ func _show_victory_message(winner: int) -> void:
 func _return_to_menu() -> void:
 	print("Returning to menu...")
 	
-	# Free the game manager to clean up properly
-	if is_instance_valid(self):
-		# Change scene using the safer approach
-		get_tree().change_scene_to_file("res://scenes/Menu.tscn")
+	set_process(false)
+	set_physics_process(false)
+	
+	get_tree().change_scene_to_file("res://scenes/Menu.tscn")
