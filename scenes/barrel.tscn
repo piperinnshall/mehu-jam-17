@@ -1,10 +1,10 @@
 [gd_scene load_steps=4 format=3 uid="uid://cyasnbadhjisx"]
 
 [ext_resource type="Script" uid="uid://do7mli035i8or" path="res://scripts/barrel.gd" id="1_ptqd7"]
-[ext_resource type="Texture2D" uid="uid://b7fdgf44jq54r" path="res://assets/Barrel.png" id="1_q36op"]
+[ext_resource type="Texture2D" uid="uid://c8f6wa8alh1w1" path="res://assets/Barrel.png" id="2_ptqd7"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_ptqd7"]
-radius = 19.026299
+radius = 19.0263
 
 [node name="Barrel" type="Area2D"]
 collision_layer = 4
@@ -15,7 +15,7 @@ script = ExtResource("1_ptqd7")
 shape = SubResource("CircleShape2D_ptqd7")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
-modulate = Color(0.5058824, 0.5058824, 0.5058824, 0.827451)
+modulate = Color(0.505882, 0.505882, 0.505882, 0.827451)
 position = Vector2(0, 5)
-scale = Vector2(0.27, 0.27)
-texture = ExtResource("1_q36op")
+scale = Vector2(0.22, 0.22)
+texture = ExtResource("2_ptqd7")
