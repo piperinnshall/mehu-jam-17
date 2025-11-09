@@ -201,7 +201,7 @@ func _physics_process(delta: float) -> void:
 func apply_rapid_fire_powerup() -> void:
 	rapid_fire_active = true
 	rapid_fire_timer = rapid_fire_duration
-	print("P1: Rapid fire activated for ", rapid_fire_duration, " seconds!")
+	print("P1: Rapid fire activated!")
 	
 	# Visual feedback - flash the sprite
 	if animated_sprite:
