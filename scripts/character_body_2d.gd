@@ -37,13 +37,13 @@ var cannon_fire_scene: PackedScene = preload("res://scenes/cannon_fire.tscn")
 
 # Explosion parameters
 var boat_explosion_scene: PackedScene = preload("res://scenes/boat_explosion.tscn")
-@export var explosion_delay_before_removal: float = 0.75  # Time to show explosion before removing boat
+@export var explosion_delay_before_removal: float = 0.75
 
 # Wake parameters
-@export var wake_spawn_rate: float = 0.03  # Time between wake particles
-@export var wake_speed_threshold: float = 20.0  # Minimum speed to create wake
-@export var wake_spread_angle: float = 95.0  # Angle of V wake in degrees
-@export var wake_lateral_speed: float = 90.0  # Speed particles move outward
+@export var wake_spawn_rate: float = 0.03
+@export var wake_speed_threshold: float = 20.0
+@export var wake_spread_angle: float = 95.0
+@export var wake_lateral_speed: float = 90.0
 var wake_particle_scene: PackedScene = preload("res://scenes/wake_particle.tscn")
 var wake_timer: float = 0.0
 var wake_container: Node2D = null
@@ -57,11 +57,10 @@ var cannon_cooldown_timer: float = 0.0
 var player2_boat: Node = null
 var is_destroyed: bool = false
 
-# Wind reference
+# References
 var wind_manager: Node = null
-
-# Map reference for water detection
 var map_generator: Node = null
+var game_manager: Node = null
 
 @onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var collision_shape: CollisionShape2D = $CollisionShape2D
@@ -74,15 +73,15 @@ func _ready() -> void:
 	if animated_sprite:
 		animated_sprite.stop()
 	
-	# Create wake container that renders below the boat
 	wake_container = Node2D.new()
 	wake_container.name = "WakeContainer"
-	wake_container.z_index = -1  # Render behind boat
+	wake_container.z_index = -1
 	call_deferred("_add_wake_container")
 	
 	call_deferred("_find_wind_manager")
 	call_deferred("_find_player2")
 	call_deferred("_find_map_generator")
+	call_deferred("_find_game_manager")
 
 func _add_wake_container() -> void:
 	get_parent().add_child(wake_container)
@@ -98,6 +97,14 @@ func _find_player2() -> void:
 func _find_map_generator() -> void:
 	var root = get_tree().root
 	map_generator = _find_node_by_name(root, "MapGenerator")
+
+func _find_game_manager() -> void:
+	var root = get_tree().root
+	game_manager = _find_node_by_class_name(root, "GameManager")
+	if game_manager:
+		print("P1: Found GameManager!")
+	else:
+		print("P1: Could not find GameManager!")
 
 func _find_node_by_class_name(node: Node, target_class: String) -> Node:
 	if node.get_script():
@@ -126,33 +133,26 @@ func _find_node_by_name(node: Node, target_name: String) -> Node:
 
 func _is_on_water() -> bool:
 	if not map_generator:
-		return true  # Default to true if map not found
-	
-	return true  # For now, assume always on water
+		return true
+	return true
 
 func _physics_process(delta: float) -> void:
-	# Don't process physics if destroyed
 	if is_destroyed:
 		return
 	
-	# Update cannon cooldown
 	if cannon_cooldown_timer > 0.0:
 		cannon_cooldown_timer -= delta
 	
-	# Get P1 input
 	var input_dir := Input.get_axis("ui_left", "ui_right")
 	var throttle := Input.get_action_strength("ui_up")
 	var fire := Input.is_action_just_pressed("ui_down")
 	
-	# Fire cannon
 	if fire and cannon_cooldown_timer <= 0.0:
 		_fire_cannon()
 		cannon_cooldown_timer = cannon_cooldown
 	
-	# Calculate wind effect on speed
 	var wind_speed_modifier = _calculate_wind_effect()
 	
-	# P1 acceleration with wind modifier
 	if throttle > 0.0:
 		p1_current_speed += acceleration * delta
 		p1_current_speed = min(p1_current_speed, max_speed + wind_speed_modifier)
@@ -160,31 +160,24 @@ func _physics_process(delta: float) -> void:
 		p1_current_speed -= deceleration * delta
 		p1_current_speed = max(p1_current_speed, min_base_speed)
 	
-	# Apply wind modifier to current speed
 	var effective_speed = p1_current_speed + wind_speed_modifier
 	effective_speed = max(effective_speed, 0.0)
 	
-	# P1 turning
 	if abs(input_dir) > 0.0 and effective_speed > min_speed_threshold:
 		p1_boat_visual_rotation += input_dir * turn_speed * delta
 		p1_target_rotation = p1_boat_visual_rotation
 	
-	# P1 movement
 	var forward_direction = Vector2.RIGHT.rotated(p1_boat_visual_rotation)
 	velocity = forward_direction * effective_speed
 	
 	move_and_slide()
 	update_sprite_frame()
-	
-	# Update wake system
 	_update_wake(delta, effective_speed)
 	
-	# P1 collision
 	if get_slide_collision_count() > 0:
 		p1_current_speed *= 0.5
 
 func _update_wake(delta: float, effective_speed: float) -> void:
-	# Only spawn wake if on water and moving fast enough
 	if not _is_on_water() or effective_speed < wake_speed_threshold:
 		return
 	
@@ -198,21 +191,14 @@ func _spawn_wake_particles() -> void:
 	if not wake_marker:
 		return
 	
-	# Get the boat's forward direction
 	var forward = Vector2.RIGHT.rotated(p1_boat_visual_rotation)
 	var backward = -forward
-	
-	# Calculate perpendicular direction (right side of boat)
 	var right = forward.rotated(PI / 2.0)
-	
-	# Convert wake spread angle to radians
 	var spread_rad = deg_to_rad(wake_spread_angle)
 	
-	# Spawn left wake particle (angled to the left)
 	var left_direction = backward.rotated(-spread_rad)
 	_create_wake_particle(wake_marker.global_position, left_direction)
 	
-	# Spawn right wake particle (angled to the right)
 	var right_direction = backward.rotated(spread_rad)
 	_create_wake_particle(wake_marker.global_position, right_direction)
 
@@ -224,7 +210,6 @@ func _create_wake_particle(pos: Vector2, direction: Vector2) -> void:
 	wake_container.add_child(wake)
 	wake.global_position = pos
 	
-	# Set velocity in the specified direction
 	if "velocity" in wake:
 		wake.velocity = direction.normalized() * wake_lateral_speed
 
@@ -235,38 +220,31 @@ func _fire_cannon() -> void:
 	if not player2_boat:
 		return
 	
-	# Calculate which side P2 is on relative to P1
 	var to_p2 = player2_boat.global_position - global_position
 	var forward = Vector2.RIGHT.rotated(p1_boat_visual_rotation)
 	var right = forward.rotated(PI / 2.0)
 	
-	# Determine which side to fire from
 	var dot_product = to_p2.dot(right)
 	var fire_direction: Vector2
 	var spawn_offset: Vector2
 	var fire_rotation: float
 	
 	if dot_product > 0:
-		# P2 is on the right side
 		fire_direction = right
 		spawn_offset = right * cannon_offset
 		fire_rotation = p1_boat_visual_rotation + PI / 2.0
 	else:
-		# P2 is on the left side
 		fire_direction = -right
 		spawn_offset = -right * cannon_offset
 		fire_rotation = p1_boat_visual_rotation - PI / 2.0
 	
-	# Spawn cannon ball
 	var cannon_ball = cannon_ball_scene.instantiate()
 	get_parent().add_child(cannon_ball)
 	cannon_ball.global_position = global_position + spawn_offset
 	
-	# Set cannon ball velocity
 	var cannon_velocity = fire_direction * cannon_ball_speed
 	cannon_ball.initialize(cannon_velocity)
 	
-	# Spawn cannon fire animation
 	var cannon_fire = cannon_fire_scene.instantiate()
 	get_parent().add_child(cannon_fire)
 	cannon_fire.global_position = global_position + spawn_offset
@@ -287,8 +265,6 @@ func _calculate_wind_effect() -> float:
 		angle_diff += TAU
 	
 	var angle_diff_degrees = abs(rad_to_deg(angle_diff))
-	var _alignment = cos(angle_diff)
-	var _threshold_radians = deg_to_rad(wind_angle_threshold)
 	
 	if angle_diff_degrees <= wind_angle_threshold:
 		var boost_factor = 1.0 - (angle_diff_degrees / wind_angle_threshold)
@@ -330,25 +306,37 @@ func hit_by_cannonball() -> void:
 	if is_destroyed:
 		return
 	
-	is_destroyed = true
+	print("P1: hit_by_cannonball called")
 	
-	# Stop movement
+	# CRITICAL: Don't find game manager here, use existing reference
+	if not game_manager:
+		_find_game_manager()
+	
+	# Notify game manager of hit
+	if game_manager and game_manager.has_method("player_hit"):
+		print("P1: Calling game_manager.player_hit(1)")
+		game_manager.player_hit(1)
+		# DON'T explode here - let game manager decide when to call _trigger_explosion
+	else:
+		print("P1: No game manager found, exploding immediately")
+		# Fallback if no game manager
+		_trigger_explosion()
+
+func _trigger_explosion() -> void:
+	print("P1: _trigger_explosion called")
+	is_destroyed = true
 	velocity = Vector2.ZERO
 	p1_current_speed = 0.0
 	
-	# Hide the boat sprite
 	if animated_sprite:
 		animated_sprite.visible = false
 	
-	# Disable collision
 	if collision_shape:
 		collision_shape.set_deferred("disabled", true)
 	
-	# Spawn explosion at boat's position
 	var explosion = boat_explosion_scene.instantiate()
 	get_parent().add_child(explosion)
 	explosion.global_position = global_position
 	
-	# Schedule removal of the boat after a delay
 	await get_tree().create_timer(explosion_delay_before_removal).timeout
 	queue_free()

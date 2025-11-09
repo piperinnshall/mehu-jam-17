@@ -11,8 +11,8 @@ config_version=5
 [application]
 
 config/name="mehu-jam-17"
-run/main_scene="uid://dg52nd3iqwge6"
-config/features=PackedStringArray("4.5", "Forward Plus")
+run/main_scene="uid://ckbqhdkck5a1q"
+config/features=PackedStringArray("4.4", "Forward Plus")
 config/icon="res://assets/icon.svg"
 
 [autoload]
@@ -49,3 +49,7 @@ P2down={
 "events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":83,"key_label":0,"unicode":115,"location":0,"echo":false,"script":null)
 ]
 }
+
+[rendering]
+
+viewport/transparent_background=true

@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://bfwnil5rw6w04"]
 
-[ext_resource type="Script" uid="uid://dvfat55vd2kmg" path="res://WindManager.gd" id="1_cpmbe"]
+[ext_resource type="Script" uid="uid://dvfat55vd2kmg" path="res://scripts/WindManager.gd" id="1_cpmbe"]
 
 [node name="WindManager" type="Node2D"]
 script = ExtResource("1_cpmbe")
