@@ -214,7 +214,7 @@ func apply_rapid_fire_powerup() -> void:
 
 func _show_powerup_text() -> void:
 	var label = Label.new()
-	label.text = "ATTACK SPEED UP\nFOR 5 SECONDS"
+	label.text = "RAPID FIRE ACTIVATED!"
 	label.add_theme_font_size_override("font_size", 24)
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.modulate = Color(1.0, 1.0, 0.0, 0.0)  # Start transparent yellow
