@@ -1,6 +1,6 @@
 [gd_scene load_steps=5 format=3 uid="uid://cvf63wgklmbu1"]
 
-[ext_resource type="Script" path="res://scripts/menu.gd" id="1_menu"]
+[ext_resource type="Script" uid="uid://5f16unksxvj8" path="res://scripts/menu.gd" id="1_menu"]
 [ext_resource type="Texture2D" uid="uid://b540ete6d4q2e" path="res://assets/0bab4a3a-1b0a-451a-8526-2c64e8b7e273.png" id="2_upctu"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button"]
@@ -84,7 +84,7 @@ theme_override_constants/shadow_offset_x = 3
 theme_override_constants/shadow_offset_y = 3
 theme_override_constants/outline_size = 8
 theme_override_font_sizes/font_size = 72
-text = "PIRATE BATTLE"
+text = "BOOM LAGOON"
 horizontal_alignment = 1
 
 [node name="Spacer" type="Control" parent="CenterContainer/VBoxContainer"]
