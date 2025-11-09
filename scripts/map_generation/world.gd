@@ -1,4 +1,4 @@
-extends Node2D
+extends Control
 
 # ========================
 # CONFIGURATION
@@ -68,6 +68,13 @@ func _ready():
 	randomize()
 	_setup_noise()
 
+	# Show loading overlay (make sure it's visible right away)
+	if has_node("CenterContainer"):
+		$CenterContainer.visible = true
+	if has_node("TextureRect"):
+		$TextureRect.visible = true
+	await get_tree().process_frame  # ensure UI updates before generation
+
 	# Create images
 	var img: Image = Image.create(WIDTH, HEIGHT, false, Image.FORMAT_RGB8)
 	var mask_img: Image = Image.create(WIDTH, HEIGHT, false, Image.FORMAT_L8)
@@ -75,7 +82,15 @@ func _ready():
 	
 	var start_time = Time.get_ticks_msec()
 
-	# Generate the map + hitbox mask simultaneously
+	# Optionally allow one more frame for "Loading..." text to appear
+	await get_tree().process_frame
+	
+	get_tree().paused = true
+
+	process_mode = Node.ProcessMode.PROCESS_MODE_PAUSABLE
+
+
+	# Generate the map
 	_generate_map(img, mask_img)
 
 	# Convert map to texture and display
@@ -94,6 +109,16 @@ func _ready():
 	
 	var time = Time.get_ticks_msec() - start_time
 	print("Map generation complete in ", time, " ms")
+
+	# Hide the loading UI
+	if has_node("CenterContainer"):
+		$CenterContainer.visible = false
+	if has_node("TextureRect"):
+		$TextureRect.visible = false
+	
+		get_tree().paused = false
+
+
 
 # ========================
 # NOISE SETUP
