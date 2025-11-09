@@ -11,13 +11,14 @@ config_version=5
 [application]
 
 config/name="mehu-jam-17"
-run/main_scene="uid://bscre3wtoe37u"
-config/features=PackedStringArray("4.4", "Forward Plus")
+run/main_scene="uid://c2lb4cnqtqp01"
+config/features=PackedStringArray("4.5", "Forward Plus")
 config/icon="res://assets/icon.svg"
 
 [autoload]
 
 Pixelator="*res://scripts/pixelator.gd"
+MusicManager="*res://scripts/MusicManager.gd"
 
 [display]
 

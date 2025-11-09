@@ -3,8 +3,8 @@ extends Node2D
 # ========================
 # CONFIGURATION
 # ========================
-const WIDTH: int = 1500
-const HEIGHT: int = 1500
+const WIDTH: int = 1400
+const HEIGHT: int = 1400
 
 # Noise generators
 var base_noise := FastNoiseLite.new()
@@ -47,7 +47,7 @@ var invert_falloff: bool = false
 # ========================
 # CENTER WATER BULGE
 # ========================
-const CENTER_BULGE_RADIUS_PIXELS: float = 500.0  # Radius in actual pixels
+const CENTER_BULGE_RADIUS_PIXELS: float = 450.0  # Radius in actual pixels
 const CENTER_BULGE_STRENGTH: float = 0.30  # How much to boost height in center
 
 # ========================
