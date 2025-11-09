@@ -27,6 +27,7 @@ class_name Player1Boat
 @export var total_sprite_frames: int = 360
 @export var sprite_rotation_offset: float = 0.0
 @export var invert_sprite_rotation: bool = false
+@export var starting_rotation: float = 180.0  # New: Starting rotation in degrees
 
 # Cannon parameters
 @export var cannon_cooldown: float = 2.0
@@ -74,8 +75,9 @@ var game_manager: Node = null
 @onready var cannon_audio: AudioStreamPlayer = $AudioStreamPlayer
 
 func _ready() -> void:
-	p1_boat_visual_rotation = 0.0
-	p1_target_rotation = 0.0
+	# Apply starting rotation
+	p1_boat_visual_rotation = deg_to_rad(starting_rotation)
+	p1_target_rotation = p1_boat_visual_rotation
 	
 	if animated_sprite:
 		animated_sprite.stop()
@@ -157,9 +159,10 @@ func _physics_process(delta: float) -> void:
 	if cannon_cooldown_timer > 0.0:
 		cannon_cooldown_timer -= delta
 	
-	var input_dir := Input.get_axis("ui_left", "ui_right")
-	var throttle := Input.get_action_strength("ui_up")
-	var fire := Input.is_action_just_pressed("ui_down")
+	# Swapped input mappings - P1 now uses P2 controls
+	var input_dir := Input.get_axis("P2left", "P2right")
+	var throttle := Input.get_action_strength("P2up")
+	var fire := Input.is_action_just_pressed("P2down")
 	
 	if fire and cannon_cooldown_timer <= 0.0:
 		_fire_cannon()
@@ -198,13 +201,46 @@ func _physics_process(delta: float) -> void:
 func apply_rapid_fire_powerup() -> void:
 	rapid_fire_active = true
 	rapid_fire_timer = rapid_fire_duration
-	print("P1: Rapid fire activated for ", rapid_fire_duration, " seconds!")
+	print("P1: Rapid fire activated!")
 	
 	# Visual feedback - flash the sprite
 	if animated_sprite:
 		var tween = create_tween()
 		tween.tween_property(animated_sprite, "modulate", Color(0.147, 1.176, 0.171, 1.0), 0.2)
 		tween.tween_property(animated_sprite, "modulate", Color.WHITE, 0.2)
+	
+	# Show powerup text
+	_show_powerup_text()
+
+func _show_powerup_text() -> void:
+	var label = Label.new()
+	label.text = "RAPID FIRE ACTIVATED!"
+	label.add_theme_font_size_override("font_size", 24)
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.modulate = Color(1.0, 1.0, 0.0, 0.0)  # Start transparent yellow
+	label.z_index = 100
+	
+	# Position label above the boat
+	label.position = Vector2(-100, -80)
+	add_child(label)
+	
+	# Animate the text
+	var tween = create_tween()
+	tween.set_parallel(true)
+	
+	# Fade in
+	tween.tween_property(label, "modulate", Color(1.0, 1.0, 0.0, 1.0), 0.3)
+	# Move up slightly
+	tween.tween_property(label, "position", label.position + Vector2(0, -20), 0.3)
+	
+	# Hold visible
+	tween.chain().tween_interval(2.0)
+	
+	# Fade out
+	tween.chain().tween_property(label, "modulate", Color(1.0, 1.0, 0.0, 0.0), 0.5)
+	
+	# Clean up
+	tween.finished.connect(func(): label.queue_free())
 
 func _update_wake(delta: float, effective_speed: float) -> void:
 	if not _is_on_water() or effective_speed < wake_speed_threshold:

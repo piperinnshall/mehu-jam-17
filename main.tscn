@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3 uid="uid://dg52nd3iqwge6"]
+[gd_scene load_steps=10 format=3 uid="uid://dg52nd3iqwge6"]
 
 [ext_resource type="PackedScene" uid="uid://qn0rmtmph5ph" path="res://scenes/boatP1.tscn" id="1_0xm2m"]
 [ext_resource type="Script" uid="uid://dlqsuwcrxks6i" path="res://scripts/game_manager.gd" id="1_7mycd"]
@@ -7,7 +7,6 @@
 [ext_resource type="PackedScene" path="res://scenes/WindManager.tscn" id="4_1bvp3"]
 [ext_resource type="Script" path="res://scripts/camera_2d.gd" id="5_lquwl"]
 [ext_resource type="PackedScene" uid="uid://w8s85l2se7nr" path="res://scenes/barrel_spawner.tscn" id="7_272bh"]
-[ext_resource type="PackedScene" uid="uid://cyasnbadhjisx" path="res://scenes/barrel.tscn" id="8_5vw27"]
 
 [sub_resource type="Gradient" id="Gradient_lquwl"]
 colors = PackedColorArray(0.298039, 0.6, 0.2, 1, 0.298039, 0.6, 0.2, 1)
@@ -31,10 +30,10 @@ texture = SubResource("GradientTexture2D_7mycd")
 [node name="World" parent="." instance=ExtResource("1_h2yge")]
 
 [node name="CharacterBody2D" parent="." instance=ExtResource("1_0xm2m")]
-position = Vector2(562, 584)
+position = Vector2(591, 849)
 
 [node name="CharacterBody2D2" parent="." instance=ExtResource("2_h2yge")]
-position = Vector2(749, 852)
+position = Vector2(756, 851)
 
 [node name="WindManager" parent="." instance=ExtResource("4_1bvp3")]
 z_index = 3
@@ -45,6 +44,3 @@ player1_path = NodePath("../CharacterBody2D")
 player2_path = NodePath("../CharacterBody2D2")
 
 [node name="BarrelSpawner" parent="." instance=ExtResource("7_272bh")]
-
-[node name="Barrel" parent="." instance=ExtResource("8_5vw27")]
-position = Vector2(385, 219)
