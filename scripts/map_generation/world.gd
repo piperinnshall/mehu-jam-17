@@ -24,9 +24,9 @@ var sand_colors = [
 ]
 
 var land_colors = [
+	Color(0.3, 0.6, 0.2),
 	Color(0.1, 0.4, 0.1),
 	Color(0.2, 0.5, 0.1),
-	Color(0.3, 0.6, 0.2)
 ]
 
 # ========================
@@ -39,15 +39,27 @@ const WATER_MAX: float = 1.0
 # ========================
 # RADIAL FALL-OFF (islands)
 # ========================
-const FALLOFF_START: float = 0.35
+const FALLOFF_START: float = 0.38
 const FALLOFF_END: float   = 0.9
 const FALLOFF_EXPONENT: float = 1.6
 var invert_falloff: bool = false
 
 # ========================
+# CENTER WATER BULGE
+# ========================
+const CENTER_BULGE_RADIUS_PIXELS: float = 450.0  # Radius in actual pixels
+const CENTER_BULGE_STRENGTH: float = 0.30  # How much to boost height in center
+
+# ========================
 # SQUARE BORDER CONFIGURATION
 # ========================
 const BORDER_WIDTH: int = 200
+
+# ========================
+# COLLISION OPTIMIZATION
+# ========================
+const COLLISION_SAMPLE_RATE: int = 8  # Sample every 8 pixels (was 2)
+const COLLISION_EPSILON: float = 12.0  # Simplification tolerance (was 4.0)
 
 # ========================
 # READY FUNCTION
@@ -136,6 +148,11 @@ func _generate_map(img: Image, mask_img: Image) -> void:
 			var dx = (x - center_x) / max_dist
 			var dy = (y - center_y) / max_dist
 			var distance = sqrt(dx * dx + dy * dy)
+			
+			# Calculate actual pixel distance for center bulge
+			var pixel_dx = x - center_x
+			var pixel_dy = y - center_y
+			var pixel_distance = sqrt(pixel_dx * pixel_dx + pixel_dy * pixel_dy)
 
 			# ------------------------
 			# NOISE GENERATION
@@ -154,6 +171,15 @@ func _generate_map(img: Image, mask_img: Image) -> void:
 			var height_val = base_val * mask
 			height_val += detail_val * 0.08 * mask
 			height_val = clamp(height_val, 0.0, 1.0)
+
+			# ------------------------
+			# CENTER WATER BULGE
+			# ------------------------
+			if pixel_distance < CENTER_BULGE_RADIUS_PIXELS:
+				var bulge_strength = (1.0 - (pixel_distance / CENTER_BULGE_RADIUS_PIXELS))
+				bulge_strength = bulge_strength * bulge_strength  # Square for smoother falloff
+				height_val += CENTER_BULGE_STRENGTH * bulge_strength
+				height_val = clamp(height_val, 0.0, 1.0)
 
 			# ------------------------
 			# BORDER ENFORCEMENT
@@ -175,10 +201,10 @@ func _generate_map(img: Image, mask_img: Image) -> void:
 			var color: Color
 			if height_val <= LAND_MAX:
 				var t = height_val / LAND_MAX
-				color = land_colors[0].lerp(land_colors[2], t)
+				color = land_colors[0] #.lerp(land_colors[2], t)
 
-				# Record grass hitbox points every 2 pixels for speed
-				if (x % 2 == 0 and y % 2 == 0):
+				# Record grass hitbox points - now sampling much less frequently
+				if (x % COLLISION_SAMPLE_RATE == 0 and y % COLLISION_SAMPLE_RATE == 0):
 					bm.set_bit(x, y, true)
 
 			elif height_val <= SAND_MAX:
@@ -194,7 +220,7 @@ func _generate_map(img: Image, mask_img: Image) -> void:
 	# BUILD GRASS HITBOX FROM MASK
 	# ========================
 	print("Generating grass hitbox polygons...")
-	var polys = bm.opaque_to_polygons(Rect2(Vector2.ZERO, Vector2(WIDTH, HEIGHT)), 4.0)
+	var polys = bm.opaque_to_polygons(Rect2(Vector2.ZERO, Vector2(WIDTH, HEIGHT)), COLLISION_EPSILON)
 
 	var static_body := StaticBody2D.new()
 	static_body.name = "GrassHitbox"
