@@ -1475,6 +1475,7 @@ z_index = 2
 sprite_frames = SubResource("SpriteFrames_4ewxu")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
+modulate = Color(1, 0, 0, 1)
 position = Vector2(-3.0000076, -54.000008)
 scale = Vector2(0.17832169, 0.17832167)
 texture = ExtResource("363_42wml")

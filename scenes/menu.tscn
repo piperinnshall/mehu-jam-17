@@ -1,4 +1,4 @@
-[gd_scene load_steps=4 format=3 uid="uid://cvf63wgklmbu1"]
+[gd_scene load_steps=5 format=3 uid="uid://cvf63wgklmbu1"]
 
 [ext_resource type="Script" uid="uid://5f16unksxvj8" path="res://scripts/menu.gd" id="1_menu"]
 [ext_resource type="Texture2D" uid="uid://b540ete6d4q2e" path="res://assets/0bab4a3a-1b0a-451a-8526-2c64e8b7e273.png" id="2_upctu"]
@@ -14,6 +14,18 @@ corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_popup"]
+bg_color = Color(0.15, 0.25, 0.35, 0.95)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.4, 0.7, 0.9, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
 
 [node name="Menu" type="Control"]
 layout_mode = 3
@@ -91,6 +103,18 @@ theme_override_styles/pressed = SubResource("StyleBoxFlat_button")
 theme_override_styles/normal = SubResource("StyleBoxFlat_button")
 text = "⚓ PLAY ⚓"
 
+[node name="TutorialButton" type="Button" parent="CenterContainer/VBoxContainer"]
+custom_minimum_size = Vector2(300, 70)
+layout_mode = 2
+theme_override_colors/font_hover_color = Color(0.4, 0.7, 0.9, 1)
+theme_override_colors/font_color = Color(0.9, 0.85, 0.6, 1)
+theme_override_colors/font_pressed_color = Color(0.95, 0.9, 0.5, 1)
+theme_override_font_sizes/font_size = 36
+theme_override_styles/hover = SubResource("StyleBoxFlat_button")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_button")
+theme_override_styles/normal = SubResource("StyleBoxFlat_button")
+text = "📖 TUTORIAL"
+
 [node name="QuitButton" type="Button" parent="CenterContainer/VBoxContainer"]
 custom_minimum_size = Vector2(300, 70)
 layout_mode = 2
@@ -102,3 +126,97 @@ theme_override_styles/hover = SubResource("StyleBoxFlat_button")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_button")
 theme_override_styles/normal = SubResource("StyleBoxFlat_button")
 text = "QUIT"
+
+[node name="TutorialPopup" type="Panel" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -400.0
+offset_top = -300.0
+offset_right = 400.0
+offset_bottom = 300.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_popup")
+
+[node name="MarginContainer" type="MarginContainer" parent="TutorialPopup"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 30
+theme_override_constants/margin_top = 30
+theme_override_constants/margin_right = 30
+theme_override_constants/margin_bottom = 30
+
+[node name="VBoxContainer" type="VBoxContainer" parent="TutorialPopup/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="TitleLabel" type="Label" parent="TutorialPopup/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.7, 0.9, 1)
+theme_override_colors/font_outline_color = Color(0.1, 0.2, 0.3, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 42
+text = "HOW TO PLAY"
+horizontal_alignment = 1
+
+[node name="ScrollContainer" type="ScrollContainer" parent="TutorialPopup/MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="TutorialText" type="RichTextLabel" parent="TutorialPopup/MarginContainer/VBoxContainer/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_colors/default_color = Color(0.9, 0.85, 0.6, 1)
+theme_override_font_sizes/normal_font_size = 20
+bbcode_enabled = true
+text = "[b]CONTROLS:[/b]
+
+[color=#4AB8FF]Player 1:[/color] W A D to move, S to shoot
+[color=#FF8C4A]Player 2:[/color] Arrow Keys to move, Down Arrow to shoot
+
+[b]COMBAT:[/b]
+
+• You will always shoot on the side the enemy is on
+• You have [color=#FFD700]3 lives[/color] - first to lose all lives loses!
+
+[b]POWERUPS:[/b]
+
+• [color=#FFD700]Barrels of cannonballs[/color] float in the water
+• Pick them up to get an attack speed bonus
+
+[b]WIND MECHANICS:[/b]
+
+• Look at the direction the wind is blowing
+• Face the [color=#90EE90]same way[/color] to go faster
+• Going [color=#FF6B6B]against the wind[/color] will slow you down and make you an easy target
+
+[b]TERRAIN:[/b]
+
+• [color=#FFD700]Careful of the islands![/color]
+• Hitting them may get you stuck on the shore
+• Maneuver carefully to escape if you get stuck
+
+[center][b]Good luck, Captain![/b][/center]"
+fit_content = true
+
+[node name="CloseButton" type="Button" parent="TutorialPopup/MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+theme_override_colors/font_hover_color = Color(0.4, 0.7, 0.9, 1)
+theme_override_colors/font_color = Color(0.9, 0.85, 0.6, 1)
+theme_override_colors/font_pressed_color = Color(0.95, 0.9, 0.5, 1)
+theme_override_font_sizes/font_size = 28
+theme_override_styles/hover = SubResource("StyleBoxFlat_button")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_button")
+theme_override_styles/normal = SubResource("StyleBoxFlat_button")
+text = "CLOSE"
