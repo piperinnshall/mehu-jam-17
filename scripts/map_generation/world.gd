@@ -3,8 +3,8 @@ extends Node2D
 # ========================
 # CONFIGURATION
 # ========================
-const WIDTH: int = 500
-const HEIGHT: int = 500
+const WIDTH: int = 1500
+const HEIGHT: int = 1500
 
 # Noise generators
 var base_noise := FastNoiseLite.new()
@@ -48,6 +48,12 @@ var invert_falloff: bool = false
 # SQUARE BORDER CONFIGURATION
 # ========================
 const BORDER_WIDTH: int = 200
+
+# ========================
+# COLLISION OPTIMIZATION
+# ========================
+const COLLISION_SAMPLE_RATE: int = 8  # Sample every 8 pixels (was 2)
+const COLLISION_EPSILON: float = 12.0  # Simplification tolerance (was 4.0)
 
 # ========================
 # READY FUNCTION
@@ -177,8 +183,8 @@ func _generate_map(img: Image, mask_img: Image) -> void:
 				var t = height_val / LAND_MAX
 				color = land_colors[0].lerp(land_colors[2], t)
 
-				# Record grass hitbox points every 2 pixels for speed
-				if (x % 2 == 0 and y % 2 == 0):
+				# Record grass hitbox points - now sampling much less frequently
+				if (x % COLLISION_SAMPLE_RATE == 0 and y % COLLISION_SAMPLE_RATE == 0):
 					bm.set_bit(x, y, true)
 
 			elif height_val <= SAND_MAX:
@@ -194,7 +200,7 @@ func _generate_map(img: Image, mask_img: Image) -> void:
 	# BUILD GRASS HITBOX FROM MASK
 	# ========================
 	print("Generating grass hitbox polygons...")
-	var polys = bm.opaque_to_polygons(Rect2(Vector2.ZERO, Vector2(WIDTH, HEIGHT)), 4.0)
+	var polys = bm.opaque_to_polygons(Rect2(Vector2.ZERO, Vector2(WIDTH, HEIGHT)), COLLISION_EPSILON)
 
 	var static_body := StaticBody2D.new()
 	static_body.name = "GrassHitbox"

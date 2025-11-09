@@ -1,4 +1,4 @@
-[gd_scene load_steps=4 format=3 uid="uid://c2lb4cnqtqp01"]
+[gd_scene load_steps=4 format=3 uid="uid://cvf63wgklmbu1"]
 
 [ext_resource type="Script" uid="uid://5f16unksxvj8" path="res://scripts/menu.gd" id="1_menu"]
 [ext_resource type="Texture2D" uid="uid://b540ete6d4q2e" path="res://assets/0bab4a3a-1b0a-451a-8526-2c64e8b7e273.png" id="2_upctu"]
@@ -82,23 +82,23 @@ layout_mode = 2
 [node name="PlayButton" type="Button" parent="CenterContainer/VBoxContainer"]
 custom_minimum_size = Vector2(300, 70)
 layout_mode = 2
+theme_override_colors/font_hover_color = Color(0.4, 0.7, 0.9, 1)
 theme_override_colors/font_color = Color(0.9, 0.85, 0.6, 1)
 theme_override_colors/font_pressed_color = Color(0.95, 0.9, 0.5, 1)
-theme_override_colors/font_hover_color = Color(0.4, 0.7, 0.9, 1)
 theme_override_font_sizes/font_size = 36
-theme_override_styles/normal = SubResource("StyleBoxFlat_button")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_button")
 theme_override_styles/hover = SubResource("StyleBoxFlat_button")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_button")
+theme_override_styles/normal = SubResource("StyleBoxFlat_button")
 text = "⚓ PLAY ⚓"
 
 [node name="QuitButton" type="Button" parent="CenterContainer/VBoxContainer"]
 custom_minimum_size = Vector2(300, 70)
 layout_mode = 2
+theme_override_colors/font_hover_color = Color(0.4, 0.7, 0.9, 1)
 theme_override_colors/font_color = Color(0.9, 0.85, 0.6, 1)
 theme_override_colors/font_pressed_color = Color(0.95, 0.9, 0.5, 1)
-theme_override_colors/font_hover_color = Color(0.4, 0.7, 0.9, 1)
 theme_override_font_sizes/font_size = 36
-theme_override_styles/normal = SubResource("StyleBoxFlat_button")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_button")
 theme_override_styles/hover = SubResource("StyleBoxFlat_button")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_button")
+theme_override_styles/normal = SubResource("StyleBoxFlat_button")
 text = "QUIT"

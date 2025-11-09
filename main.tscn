@@ -29,10 +29,10 @@ texture = SubResource("GradientTexture2D_7mycd")
 [node name="World" parent="." instance=ExtResource("1_h2yge")]
 
 [node name="CharacterBody2D" parent="." instance=ExtResource("1_0xm2m")]
-position = Vector2(261, 198)
+position = Vector2(458, 368)
 
 [node name="CharacterBody2D2" parent="." instance=ExtResource("2_h2yge")]
-position = Vector2(453, 95)
+position = Vector2(990, 842)
 
 [node name="WindManager" parent="." instance=ExtResource("4_1bvp3")]
 z_index = 3
