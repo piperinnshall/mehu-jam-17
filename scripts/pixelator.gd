@@ -5,6 +5,9 @@ extends CanvasLayer
 var color_rect: ColorRect
 
 func _ready() -> void:
+	# Set layer to be on top (above game UI at layer 0)
+	layer = 100
+	
 	# Create ColorRect
 	color_rect = ColorRect.new()
 	add_child(color_rect)
@@ -13,7 +16,7 @@ func _ready() -> void:
 	color_rect.anchor_right = 1.0
 	color_rect.anchor_bottom = 1.0
 	
-	
+	# Use nearest neighbor filtering for crisp pixels
 	color_rect.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	
 	# Load and apply shader
