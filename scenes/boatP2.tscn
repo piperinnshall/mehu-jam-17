@@ -1,4 +1,4 @@
-[gd_scene load_steps=366 format=3 uid="uid://dun85bvaamrqx"]
+[gd_scene load_steps=367 format=3 uid="uid://dun85bvaamrqx"]
 
 [ext_resource type="Script" uid="uid://bgnop23864aps" path="res://scripts/boat_p_2.gd" id="1_po6ie"]
 [ext_resource type="Texture2D" uid="uid://dvl4ew3gofroi" path="res://assets/ship/0001.png" id="2_0wgfw"]
@@ -363,6 +363,7 @@
 [ext_resource type="Texture2D" uid="uid://l4ioy2m1abh" path="res://assets/ship/0360.png" id="361_vtam4"]
 [ext_resource type="Texture2D" uid="uid://bg8wk17qdv0m3" path="res://assets/ship/0361.png" id="362_sgwno"]
 [ext_resource type="Texture2D" uid="uid://cn8jtfjlhvkey" path="res://assets/p1p2.png" id="363_0wgfw"]
+[ext_resource type="AudioStream" uid="uid://b7b1mr104j173" path="res://assets/bfdi-explosion.mp3" id="364_rnpdj"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_0wgfw"]
 radius = 12.0
@@ -1482,3 +1483,7 @@ region_rect = Rect2(164, 392, 255, 143)
 
 [node name="WakeMarker" type="Marker2D" parent="."]
 position = Vector2(0, 7)
+
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("364_rnpdj")
+volume_db = -42.981

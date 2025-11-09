@@ -35,6 +35,12 @@ class_name Player1Boat
 var cannon_ball_scene: PackedScene = preload("res://scenes/cannon_ball.tscn")
 var cannon_fire_scene: PackedScene = preload("res://scenes/cannon_fire.tscn")
 
+# Powerup parameters
+var rapid_fire_active: bool = false
+var rapid_fire_timer: float = 0.0
+var rapid_fire_duration: float = 5.0
+var rapid_fire_cooldown: float = 0.4
+
 # Explosion parameters
 var boat_explosion_scene: PackedScene = preload("res://scenes/boat_explosion.tscn")
 @export var explosion_delay_before_removal: float = 0.75
@@ -65,6 +71,7 @@ var game_manager: Node = null
 @onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var collision_shape: CollisionShape2D = $CollisionShape2D
 @onready var wake_marker: Marker2D = $WakeMarker
+@onready var cannon_audio: AudioStreamPlayer = $AudioStreamPlayer
 
 func _ready() -> void:
 	p1_boat_visual_rotation = 0.0
@@ -140,6 +147,13 @@ func _physics_process(delta: float) -> void:
 	if is_destroyed:
 		return
 	
+	# Handle rapid fire timer
+	if rapid_fire_active:
+		rapid_fire_timer -= delta
+		if rapid_fire_timer <= 0.0:
+			rapid_fire_active = false
+			print("P1: Rapid fire expired")
+	
 	if cannon_cooldown_timer > 0.0:
 		cannon_cooldown_timer -= delta
 	
@@ -149,7 +163,11 @@ func _physics_process(delta: float) -> void:
 	
 	if fire and cannon_cooldown_timer <= 0.0:
 		_fire_cannon()
-		cannon_cooldown_timer = cannon_cooldown
+		# Use rapid fire cooldown if active
+		if rapid_fire_active:
+			cannon_cooldown_timer = rapid_fire_cooldown
+		else:
+			cannon_cooldown_timer = cannon_cooldown
 	
 	var wind_speed_modifier = _calculate_wind_effect()
 	
@@ -176,6 +194,17 @@ func _physics_process(delta: float) -> void:
 	
 	if get_slide_collision_count() > 0:
 		p1_current_speed *= 0.5
+
+func apply_rapid_fire_powerup() -> void:
+	rapid_fire_active = true
+	rapid_fire_timer = rapid_fire_duration
+	print("P1: Rapid fire activated for ", rapid_fire_duration, " seconds!")
+	
+	# Visual feedback - flash the sprite
+	if animated_sprite:
+		var tween = create_tween()
+		tween.tween_property(animated_sprite, "modulate", Color(0.147, 1.176, 0.171, 1.0), 0.2)
+		tween.tween_property(animated_sprite, "modulate", Color.WHITE, 0.2)
 
 func _update_wake(delta: float, effective_speed: float) -> void:
 	if not _is_on_water() or effective_speed < wake_speed_threshold:
@@ -214,6 +243,10 @@ func _create_wake_particle(pos: Vector2, direction: Vector2) -> void:
 		wake.velocity = direction.normalized() * wake_lateral_speed
 
 func _fire_cannon() -> void:
+	# Play cannon sound
+	if cannon_audio:
+		cannon_audio.play()
+	
 	if not player2_boat:
 		_find_player2()
 	
@@ -308,18 +341,14 @@ func hit_by_cannonball() -> void:
 	
 	print("P1: hit_by_cannonball called")
 	
-	# CRITICAL: Don't find game manager here, use existing reference
 	if not game_manager:
 		_find_game_manager()
 	
-	# Notify game manager of hit
 	if game_manager and game_manager.has_method("player_hit"):
 		print("P1: Calling game_manager.player_hit(1)")
 		game_manager.player_hit(1)
-		# DON'T explode here - let game manager decide when to call _trigger_explosion
 	else:
 		print("P1: No game manager found, exploding immediately")
-		# Fallback if no game manager
 		_trigger_explosion()
 
 func _trigger_explosion() -> void:
@@ -338,5 +367,4 @@ func _trigger_explosion() -> void:
 	get_parent().add_child(explosion)
 	explosion.global_position = global_position
 	
-	await get_tree().create_timer(explosion_delay_before_removal).timeout
-	queue_free()
+	get_tree().create_timer(explosion_delay_before_removal).timeout.connect(queue_free)
